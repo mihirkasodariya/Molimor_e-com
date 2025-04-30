@@ -21,7 +21,7 @@ const validateAccessToken = async (req, res, next) => {
         let token = req.headers.authorization || req.headers.Authorization;
 
         if (!token) {
-            return res.status(401).json({ status: 401, message: 'No token provided!' });
+            return res.status(401).json({ success: false, status: 401, message: 'No token provided!' });
         };
         const secret = process.env.JWT_SECRET;
         const verifyOptions = {
@@ -32,21 +32,22 @@ const validateAccessToken = async (req, res, next) => {
 
         const rootUser = await userModel.findById({ _id: decodedToken.id });
         if (!rootUser) {
-            return res.status(401).json({ status: 401, message: 'Unauthorized User' });
+            return res.status(401).json({ success: false, status: 401, message: 'Unauthorized User' });
         };
 
         req.user = rootUser;
+        console.log('Root User Id : ', req.user.id)
         next();
     } catch (error) {
         console.error('JWT Verification Error:', error.message);
-        return res.status(403).json({ status: 401, message: 'Invalid or Expired Token' });
+        return res.status(403).json({ success: false, status: 401, message: 'Invalid or Expired Token' });
     };
 };
 
 const authorizeRoles = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.user || !allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ status: 0, message: 'Access Denied' });
+            return res.status(403).json({ success: false, status: 0, message: 'Access Denied' });
         };
         next();
     };

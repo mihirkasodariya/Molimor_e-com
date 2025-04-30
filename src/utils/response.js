@@ -16,4 +16,5 @@ module.exports = class response {
             data: data || {},
         });
     };
+    
 };

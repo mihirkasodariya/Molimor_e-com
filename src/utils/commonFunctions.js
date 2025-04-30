@@ -1,5 +1,6 @@
 const multer = require('multer');
 var fs = require("fs");
+const path = require('path');
 
 const saveUserProfile = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -24,3 +25,31 @@ const productImagesStorage = multer.diskStorage({
 });
 
 module.exports.productImage = multer({ storage: productImagesStorage });
+
+const excelFileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = './public/uploadFile';
+        fs.mkdir(dir, { recursive: true }, (err) => cb(err, dir));
+    },
+    filename: (req, file, cb) => {
+        const timestamp = Date.now();
+        const ext = path.extname(file.originalname);
+        cb(null, `${timestamp}-excel${ext}`);
+    },
+});
+
+module.exports.uploadExcelFile =  multer({ storage: excelFileStorage });
+
+module.exports.getAvailableFileName = (dir, baseName, extension) => {
+    let counter = 1;
+    let fileName = `${baseName}.${extension}`;
+    let filePath = path.join(dir, fileName);
+
+    while (fs.existsSync(filePath)) {
+        counter++;
+        fileName = `${baseName}(${counter}).${extension}`;
+        filePath = path.join(dir, fileName);
+    };
+    return filePath;
+};
+

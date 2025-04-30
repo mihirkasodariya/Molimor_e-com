@@ -59,7 +59,34 @@ module.exports.profile = async (req, res) => {
         if (!user) {
             return response.error(res, 403, 'User not found.');
         };
-        return response.success(res, 200, 'Retrieve user profile successful', { user });
+        const updatedUser = {
+            ...user._doc,
+            profilePhoto: user?.profilePhoto ? `/userProfile/${user?.profilePhoto}` : null
+        };
+        return response.success(res, 200, 'Retrieve user profile successful', updatedUser);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+module.exports.updateProfile = async (req, res) => {
+    try {
+        const { fname, lname, mobile, gender } = req.body;
+        const updatedUser = await userModel.findByIdAndUpdate(
+            req.user.id,
+            {
+                $set: {
+                    fname: fname ?? req.user?.fname,
+                    lname: lname ?? req.user?.lname,
+                    mobile: mobile ?? req.user?.mobile,
+                    gender: gender ?? req.user?.gender,
+                    profilePhoto: req.file?.filename ?? user?.profilePhoto
+                }
+            },
+            { new: true, runValidators: true }
+        );
+        return response.success(res, 200, 'User profile updated successfully.', updatedUser);
     } catch (err) {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
@@ -80,7 +107,7 @@ module.exports.googleOAuthLogin = async (req, res) => {
     const axios = require('axios');
 
     const { code } = req.body;
-    
+
     const { error } = googleOAuthValidation.validate(req.body);
     if (error) {
         return response.error(res, 400, error.details[0].message);
@@ -102,18 +129,18 @@ module.exports.googleOAuthLogin = async (req, res) => {
             }
         });
         const user = userInfoResponse.data;
-        let createNewUser = await userModel.findOne({email : user.email})
-        if(!createNewUser) {
-        let createNewUser = new userModel({
-            fname: user.given_name,
-            lname: user.family_name,
-            email: user.email,
-            profilePhoto: user.picture,
-        });
-        await createNewUser.save();
-    };
+        let createNewUser = await userModel.findOne({ email: user.email })
+        if (!createNewUser) {
+            let createNewUser = new userModel({
+                fname: user.given_name,
+                lname: user.family_name,
+                email: user.email,
+                profilePhoto: user.picture,
+            });
+            await createNewUser.save();
+        };
         let token = await generateJWToken({ id: createNewUser._id });
-        return response.success(res, 200, 'Google authentication successful.', {_id: createNewUser._id, token: token });
+        return response.success(res, 200, 'Google authentication successful.', { _id: createNewUser._id, token: token });
     } catch (error) {
         if (error.response?.data?.error === 'invalid_grant' || error.response?.data?.error_description === 'Bad Request') {
             return response.error(res, 403, 'Authorization code expired. Please try again.', {});
@@ -122,7 +149,6 @@ module.exports.googleOAuthLogin = async (req, res) => {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
 };
-
 
 
 module.exports.getFacebookOAuthUrl = async (req, res) => {
@@ -136,7 +162,6 @@ module.exports.getFacebookOAuthUrl = async (req, res) => {
 };
 
 module.exports.facebookOAuthLogin = async (req, res) => {
-
     const { code } = req.query;
     try {
         const tokenResponse = await axios.get('https://graph.facebook.com/v13.0/oauth/access_token', {
@@ -155,12 +180,9 @@ module.exports.facebookOAuthLogin = async (req, res) => {
             }
         });
         const userData = userResponse.data;
-         // Here you would typically check if the user exists in your database
-        // and either create a new user or log in the existing user.
         res.send(`Hello ${userData.name}!`);
-
     } catch (error) {
         console.error("Facebook Authentication Error:", error);
         res.status(500).send('Authentication failed.');
-    }
+    };
 };

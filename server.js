@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 require("dotenv").config();
+const path = require('path');
+
 // const swaggerUi = require("swagger-ui-express")
 // const swaggerDocument = require("./src/swagger-output.json")
 
@@ -18,6 +20,7 @@ app.use(express.urlencoded({ extended: true }));
 // app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument))
 app.use('/api', require('./src/router/index'));
 
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/start', (req, res) => {
     res.send(`<h1>Hello Molimor<h1/>`);

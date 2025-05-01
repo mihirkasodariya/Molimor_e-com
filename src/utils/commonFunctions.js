@@ -38,7 +38,7 @@ const excelFileStorage = multer.diskStorage({
     },
 });
 
-module.exports.uploadExcelFile =  multer({ storage: excelFileStorage });
+module.exports.uploadExcelFile = multer({ storage: excelFileStorage });
 
 module.exports.getAvailableFileName = (dir, baseName, extension) => {
     let counter = 1;
@@ -53,3 +53,38 @@ module.exports.getAvailableFileName = (dir, baseName, extension) => {
     return filePath;
 };
 
+const bannerImageStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './public/banner';
+        fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-banner-" + file.originalname);
+    },
+});
+module.exports.bannerImage = multer({ storage: bannerImageStorage });
+
+
+const certificateImageStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './public/certificate';
+        fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-certificate-" + file.originalname);
+    },
+});
+module.exports.certificateImage = multer({ storage: certificateImageStorage });
+
+
+const mediaStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './public/media';
+        fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-media-" + file.originalname);
+    },
+});
+
+module.exports.mediaFile = multer({ storage: mediaStorage });

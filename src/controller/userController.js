@@ -186,3 +186,95 @@ module.exports.facebookOAuthLogin = async (req, res) => {
         res.status(500).send('Authentication failed.');
     };
 };
+
+module.exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({role : "user"}).select('-password', 'profilePhoto');
+
+        if (!users || users.length === 0) {
+            return response.error(res, 403, 'No users found.');
+        };
+        // const updatedUsers = users.map(user => ({
+        //     ...user._doc,
+        //     profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
+        // }));
+
+        return response.success(res, 200, 'Users fetched successfully', users);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+
+module.exports.getUserById = async (req, res) => {
+    const id = req.params.id;
+
+    try {
+        const user = await userModel.findById(id).select('-password');
+        if (!user) {
+            return response.error(res, 403, 'No user found.');
+        };
+        const updatedUser = {
+            ...user._doc,
+            profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
+        };
+        return response.success(res, 200, 'User fetched successfully', updatedUser);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+module.exports.updateUserById = async (req, res) => {
+    const id = req.params.id;
+    const updateData = req.body;
+    try {
+        const updatedUser = await userModel.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).select('-password');
+
+        if (!updatedUser) {
+            return response.error(res, 404, 'User not found.');
+        };
+        return response.success(res, 200, 'User updated successfully', {
+            ...updatedUser._doc,
+            profilePhoto: updatedUser.profilePhoto ? `/userProfile/${updatedUser.profilePhoto}` : null
+        });
+
+    } catch (err) {
+        console.error(err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+module.exports.inActiveUserById = async (req, res) => {
+    const id = req.params.id;
+    const isActive = req.body.isActive;
+    try {
+        const inActiveUser = await userModel.findByIdAndUpdate(id, {isActive:isActive}, { new: true, runValidators: true }).select('-password');
+        return response.success(res, 200, 'User fetched successfully', inActiveUser);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+
+module.exports.getAllUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({role : "user"}).select('-password', 'profilePhoto');
+
+        if (!users || users.length === 0) {
+            return response.error(res, 403, 'No users found.');
+        };
+        // const updatedUsers = users.map(user => ({
+        //     ...user._doc,
+        //     profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
+        // }));
+
+        return response.success(res, 200, 'Users fetched successfully', users);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+

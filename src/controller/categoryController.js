@@ -16,15 +16,23 @@ exports.addCategory = async (req, res) => {
     };
 };
 
-exports.getCategoryList = async (req, res) => {
+exports.getActiveCategoryList = async (req, res) => {
     try {
-        const categories = await categoryModel.find({});
+        const categories = await categoryModel.find({isActive : true}).sort({ createdAt: -1 });
         return response.success(res, 200, 'Categories fetched successfully', categories);
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
 };
 
+exports.getCategoryList = async (req, res) => {
+    try {
+        const categories = await categoryModel.find({}).sort({ createdAt: -1 });
+        return response.success(res, 200, 'Categories fetched successfully', categories);
+    } catch (error) {
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
 
 exports.getCategoryById = async (req, res) => {
     try {

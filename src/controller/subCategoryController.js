@@ -24,7 +24,16 @@ exports.addSubCategory = async (req, res) => {
 
 exports.getSubCategoryList = async (req, res) => {
     try {
-        const categories = await subCategoryModel.find({});
+        const categories = await subCategoryModel.find({}).sort({ createdAt: -1 });
+        return response.success(res, 200, 'Categories fetched successfully', categories);
+    } catch (error) {
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+exports.getActiveSubCategoryList = async (req, res) => {
+    try {
+        const categories = await subCategoryModel.find({isActive : true}).populate("categoryId").sort({ createdAt: -1 });
         return response.success(res, 200, 'Categories fetched successfully', categories);
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});

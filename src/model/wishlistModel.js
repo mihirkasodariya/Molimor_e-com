@@ -6,7 +6,7 @@ const wishlistItemSchema = new Schema({
   productId: { type: mongoose.Schema.Types.ObjectId, ref: 'products', required: true },
   addedAt: { type: Date, default: Date.now },
   isDelete:  { type: Boolean, default: false },
-}, { _id: false });
+}, { _id: true });
 
 const wishlistSchema = new Schema({
     userId: {  type: Schema.Types.ObjectId, ref: 'users', required: true  },

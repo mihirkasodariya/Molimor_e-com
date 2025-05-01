@@ -36,7 +36,7 @@ module.exports.addSingleProduct = async (req, res) => {
 
 module.exports.getAllProductsList = async (req, res) => {
     try {
-        const products = await productModel.find();
+        const products = await productModel.find({isActive : true, isDelete : false}).sort({ createdAt: -1 });
         if (!products?.length === 0) {
             return response.error(res, 403, 'No products found', {});
         };
@@ -51,6 +51,22 @@ module.exports.getAllProductsList = async (req, res) => {
     }
 };
 
+module.exports.getAllAdminProductsList = async (req, res) => {
+    try {
+        const products = await productModel.find({isDelete : false}).sort({ createdAt: -1 });
+        if (!products?.length === 0) {
+            return response.error(res, 403, 'No products found', {});
+        };
+        const changeResponse = products.map(product => ({
+            ...product._doc,
+            image: product.image?.[0] ? `/productImages/${product.image[0]}` : null
+        }));
+        return response.success(res, 200, 'Products retrieved successfully', changeResponse);
+    } catch (error) {
+        console.error(error);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    }
+};
 module.exports.getProductById = async (req, res) => {
     const { id } = req.params;
     try {

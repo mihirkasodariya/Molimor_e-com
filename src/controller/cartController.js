@@ -38,12 +38,13 @@ module.exports.addToCart = async (req, res) => {
 
 module.exports.getUserCart = async (req, res) => {
     try {
-        const getUserCart = await cartModel.findOne({ userId: req.user.id });
+        const getUserCart = await cartModel.findOne({ userId: req.user.id }).populate("items.productId");;
 
         const item = getUserCart?.items.filter(item => item.isDelete === false);
         if (!item || item?.length === 0) {
             return response.error(res, 404, 'No Cart Found.', {});
         };
+
         return response.success(res, 200, 'Cart fetched successfully', item);
     } catch (error) {
         console.error(error);

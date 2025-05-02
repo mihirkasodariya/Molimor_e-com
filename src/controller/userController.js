@@ -153,7 +153,7 @@ module.exports.googleOAuthLogin = async (req, res) => {
 
 module.exports.getFacebookOAuthUrl = async (req, res) => {
     try {
-        const redirectUrl = `https://www.facebook.com/v13.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${FACEBOOK_REDIRECT_URI}&scope=email`;
+        const redirectUrl = `https://www.facebook.com/v13.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&scope=email`;
         return response.success(res, 200, 'Facebook OAuth URL generated successfully. Please proceed with the login process', { url: redirectUrl });
     } catch (err) {
         console.error(err);

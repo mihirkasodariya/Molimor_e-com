@@ -12,7 +12,7 @@ router.put('/updateProfile', validateAccessToken, saveUserProfile.single('profil
 router.get('/getGoogleOAuthUrl', userController.getGoogleOAuthUrl); // user
 router.post('/googleOAuthLogin', userController.googleOAuthLogin); // user
 
-router.post('/getFacebookOAuthUrl', userController.getFacebookOAuthUrl); // user
+router.get('/getFacebookOAuthUrl', userController.getFacebookOAuthUrl); // user
 router.post('/facebookOAuthLogin', userController.facebookOAuthLogin); // user
 
 

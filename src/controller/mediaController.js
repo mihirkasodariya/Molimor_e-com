@@ -1,4 +1,5 @@
-const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation } = require('../model/mediaModel');
+const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation } = require('../model/mediaModel');
+
 const response = require('../utils/response');
 
 module.exports.addMedia = async (req, res) => {
@@ -109,6 +110,49 @@ module.exports.inActiveMediaById = async (req, res) => {
         return response.success(res, 200, 'Media inactivated successfully', inActiveMedia);
     } catch (err) {
         console.error(err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+
+
+exports.addSocialAccountURL = async (req, res) => {
+    const {facebook, instagram, linkedin, twitter} = req.body;
+    const { error } = socialAccountValidation.validate(req.body);
+    if (error) {
+        return response.error(res, 400, error.details[0].message);
+    };
+    try {
+        const existingLink = await socialAccountModel.findOne().lean();
+
+        let result;
+        if (!existingLink) {
+            result = await socialAccountModel.create(req.body);
+            return response.success(res, 200, "Social links created successfully.", result);
+        } else {
+            result = await socialAccountModel.findOneAndUpdate({}, req.body, {
+                new: true,
+                upsert: true,
+            });
+            return response.success(res, 200, "Social links updated successfully.", result);
+        };
+    } catch (err) {
+        console.error("Error adding/updating social account:", err);
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    };
+};
+
+
+
+exports.getSocialAccountURL = async (req, res) => {
+    try {
+        const link = await socialAccountModel.findOne().lean();
+        if (!link) {
+            return response.success(res, 200, "No social links found.", {});
+        };
+        return response.success(res, 200, "Social links retrieved successfully.", link);
+    } catch (err) {
+        console.error("Error fetching social links:", err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
 };

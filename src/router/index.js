@@ -12,6 +12,8 @@ router.use('/banner', require('./bannerRoutes'));
 router.use('/certificate', require('./certificateRoutes'));
 router.use('/media', require('./mediaRoutes'));
 router.use('/review', require('./reviewRoutes'));
+router.use('/about', require('./aboutRoutes'));
+router.use('/contact', require('./contactUsRoutes'));
 
 
 

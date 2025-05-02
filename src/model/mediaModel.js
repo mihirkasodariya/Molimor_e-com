@@ -56,8 +56,7 @@ const videoValidation = Joi.object({
   isActive: Joi.boolean().default(true).messages({
       'boolean.base': 'Active flag must be a boolean value.'
     })
-});
-
+}, { timestamps: true });
 
 
 
@@ -85,11 +84,49 @@ const mediaActiveValidation = Joi.object({
     })
 });
 
+// Social Account
+const socialAccountSchema = new mongoose.Schema({
+  facebook: { type: String },
+  instagram: { type: String },
+  linkedin: { type: String },
+  twitter: { type: String },
+  isActive: {type: Boolean,default: true,},
+});
+
+const socialAccountModel = mongoose.model("social_accounts", socialAccountSchema);
+
+const socialAccountValidation = Joi.object({
+  facebook: Joi.string().optional().messages({
+    "string.base": "Facebook link must be a valid string.",
+    "string.empty": "Facebook link cannot be empty.",
+    "any.required": "Facebook link is required.",
+  }),
+  instagram: Joi.string().optional().messages({
+    "string.base": "Instagram handle must be a valid string.",
+    "string.empty": "Instagram handle cannot be empty.",
+    "any.required": "Instagram handle is required.",
+  }),
+  linkedin: Joi.string().optional().messages({
+    "string.base": "LinkedIn profile must be a valid string.",
+    "string.empty": "LinkedIn profile cannot be empty.",
+    "any.required": "LinkedIn profile is required.",
+  }),
+  twitter: Joi.string().optional().messages({
+    "string.base": "Twitter handle must be a valid string.",
+    "string.empty": "Twitter handle cannot be empty.",
+    "any.required": "Twitter handle is required.",
+  }),
+  isActive: Joi.boolean().default(true),
+});
+
 
 module.exports = {
   mediaModel,
   mediaValidation,
   videoValidation,
   mediaIdValidation,
-  mediaActiveValidation
+  mediaActiveValidation,
+
+  socialAccountModel,
+  socialAccountValidation,
 };

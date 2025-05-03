@@ -1,11 +1,11 @@
-const express = require("express");
-const router = express.Router();
-const aboutController = require('../controller/aboutController'); 
-const {validateAccessToken, authorizeRoles} = require("../middeleware/auth")
+import { Router } from "express";
+const router = Router();
+import { addAbout, getAbout } from '../controller/aboutController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
+
+router.post("/addAbout", validateAccessToken, authorizeRoles('admin'), addAbout);
+router.get("/getAbout", authorizeRoles, getAbout);
 
 
-router.post("/addAbout", validateAccessToken, authorizeRoles('admin'), aboutController.addAbout);
-router.get("/getAbout", authorizeRoles, aboutController.getAbout);
-
-
-module.exports = router;
+export default router;

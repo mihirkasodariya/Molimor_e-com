@@ -1,10 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const wishlistController = require('../controller/wishlistController');
-const {validateAccessToken} = require("../middeleware/auth")
+import { Router } from 'express';
+const router = Router();
+import { addWishlist, getWishlist, removeFromWishlist } from '../controller/wishlistController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken } = auth;
 
-router.post('/addWishlist', validateAccessToken, wishlistController.addWishlist); // user
-router.get('/getWishlist', validateAccessToken, wishlistController.getWishlist); // user
-router.delete('/removeFromWishlist/:productId', validateAccessToken, wishlistController.removeFromWishlist); // user
+router.post('/addWishlist', validateAccessToken, addWishlist); // user
+router.get('/getWishlist', validateAccessToken, getWishlist); // user
+router.delete('/removeFromWishlist/:productId', validateAccessToken, removeFromWishlist); // user
 
-module.exports = router;
+export default router;

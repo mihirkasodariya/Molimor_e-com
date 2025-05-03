@@ -1,8 +1,9 @@
-const { bannerModel, bannerValidation, bannerIdValidation, bannerActiveValidation } = require('../model/bannerModel');
-const response = require('../utils/response');
+import model from '../model/bannerModel.js';
+const { bannerModel, bannerValidation, bannerIdValidation, bannerActiveValidation } = model;
+import response from '../utils/response.js';
 
-module.exports.addBanner = async (req, res) => {
-    const { error } = bannerValidation.validate({image : req?.file?.filename});
+export async function addBanner(req, res) {
+    const { error } = bannerValidation.validate({ image: req?.file?.filename });
     if (error) {
         return response.error(res, 400, error.details[0].message);
     };
@@ -15,9 +16,9 @@ module.exports.addBanner = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getAllBanner = async (req, res) => {
+export async function getAllBanner(req, res) {
     try {
         const bannerList = await bannerModel.find({ isActive: true, isDelete: false }).sort({ createdAt: -1 });
         if (!bannerList) {
@@ -36,11 +37,11 @@ module.exports.getAllBanner = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.adminGetAllBanner = async (req, res) => {
+export async function adminGetAllBanner(req, res) {
     try {
-        const bannerList = await bannerModel.find({isDelete: false }).sort({ createdAt: -1 });
+        const bannerList = await bannerModel.find({ isDelete: false }).sort({ createdAt: -1 });
         if (!bannerList) {
             return response.error(res, 403, 'Banner List is empty', []);
         };
@@ -57,9 +58,9 @@ module.exports.adminGetAllBanner = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.deleteBannerById = async (req, res) => {
+export async function deleteBannerById(req, res) {
     const bannerId = req.params.id;
     const { error } = bannerIdValidation.validate(req.params);
     if (error) {
@@ -73,9 +74,9 @@ module.exports.deleteBannerById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.inActiveBannerById = async (req, res) => {
+export async function inActiveBannerById(req, res) {
     const bannerId = req.params.id;
     const isActive = req.body.isActive;
     req.body.id = bannerId;
@@ -90,4 +91,4 @@ module.exports.inActiveBannerById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}

@@ -1,5 +1,5 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+import mongoose, { model } from 'mongoose';
 const { Schema } = mongoose;
 
 const userRegisterSchema = new Schema({
@@ -8,17 +8,13 @@ const userRegisterSchema = new Schema({
     email: { type: String, required: true },
     mobile: { type: String, default: "" },
     password: { type: String, default: "" },
-    gender: { type: String,  default: ""},
+    gender: { type: String, default: "" },
     profilePhoto: { type: String },
     isActive: { type: Boolean, default: true },
-    role: {
-        type: String,
-        required: true,
-        default: "user"
-      }
+    role: { type: String, required: true, default: "user" }
 }, { timestamps: true });
 
-const userModel = mongoose.model('users', userRegisterSchema);
+const userModel = model('users', userRegisterSchema);
 
 const userRegisterValidation = Joi.object({
     fname: Joi.string().min(3).max(30).required().messages({
@@ -77,7 +73,7 @@ const googleOAuthValidation = Joi.object({
     }),
 });
 
-module.exports = {
+export default {
     userModel,
     userRegisterValidation,
     userLoginValidation,

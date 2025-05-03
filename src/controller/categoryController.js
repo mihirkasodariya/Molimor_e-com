@@ -1,7 +1,8 @@
-const { categoryModel, categoryValidation, categoryIdValidation, categoryInActiveValidation } = require("../model/categoryModel");
-const response = require('../utils/response');
+import model from "../model/categoryModel.js";
+const { categoryModel, categoryValidation, categoryIdValidation, categoryInActiveValidation } = model;
+import response from '../utils/response.js';
 
-exports.addCategory = async (req, res) => {
+export async function addCategory(req, res) {
     const { name } = req.body;
     const { error } = categoryValidation.validate(req.body);
     if (error) {
@@ -14,27 +15,27 @@ exports.addCategory = async (req, res) => {
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.getActiveCategoryList = async (req, res) => {
+export async function getActiveCategoryList(req, res) {
     try {
-        const categories = await categoryModel.find({isActive : true}).sort({ createdAt: -1 });
+        const categories = await categoryModel.find({ isActive: true }).sort({ createdAt: -1 });
         return response.success(res, 200, 'Categories fetched successfully', categories);
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.getCategoryList = async (req, res) => {
+export async function getCategoryList(req, res) {
     try {
         const categories = await categoryModel.find({}).sort({ createdAt: -1 });
         return response.success(res, 200, 'Categories fetched successfully', categories);
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.getCategoryById = async (req, res) => {
+export async function getCategoryById(req, res) {
     try {
         const { error } = categoryIdValidation.validate(req.params);
         if (error) {
@@ -49,9 +50,9 @@ exports.getCategoryById = async (req, res) => {
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.updateCategory = async (req, res) => {
+export async function updateCategory(req, res) {
     const { error } = categoryIdValidation.validate(req.params);
     if (error) {
         return response.error(res, 400, error.details[0].message);
@@ -71,9 +72,9 @@ exports.updateCategory = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Error updating category", error });
     };
-};
+}
 
-exports.inActiveCategory = async (req, res) => {
+export async function inActiveCategory(req, res) {
     const { isActive } = req.body;
     const { error } = categoryInActiveValidation.validate(req.params, req.body);
     if (error) {
@@ -92,4 +93,4 @@ exports.inActiveCategory = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Error deleting category", error });
     };
-};
+}

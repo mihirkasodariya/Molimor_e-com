@@ -1,14 +1,14 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+import mongoose, { model } from 'mongoose';
 const { Schema } = mongoose;
 
 const bannerSchema = new Schema({
-  image: { type: String, required: true }, 
+  image: { type: String, required: true },
   isDelete: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const bannerModel = mongoose.model('banners', bannerSchema);
+const bannerModel = model('banners', bannerSchema);
 
 const bannerValidation = Joi.object({
   image: Joi.string().required().messages({
@@ -44,7 +44,7 @@ const bannerActiveValidation = Joi.object({
 });
 
 
-module.exports = {
+export default {
   bannerModel,
   bannerValidation,
   bannerIdValidation,

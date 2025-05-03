@@ -1,5 +1,5 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+import mongoose, { model } from 'mongoose';
 const { Schema } = mongoose;
 
 
@@ -28,7 +28,7 @@ const orderSchema = new Schema({
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const orderModel = mongoose.model('orders', orderSchema);
+const orderModel = model('orders', orderSchema);
 const itemValidation = Joi.object({
   productId: Joi.string().length(24).required().messages({
     'string.base': 'Product ID must be a string',
@@ -133,7 +133,7 @@ const getOrderValidation = Joi.object({
     'any.required': 'Order ID is required'
   })
 });
-module.exports = {
+export default {
   orderModel,
   orderValidation,
   getOrderValidation

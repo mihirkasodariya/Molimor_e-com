@@ -1,13 +1,14 @@
-const express = require('express');
-const router = express.Router();
-const categoryController = require('../controller/categoryController');
-const { validateAccessToken, authorizeRoles } = require("../middeleware/auth");
+import { Router } from 'express';
+const router = Router();
+import { addCategory, getActiveCategoryList, getCategoryList, getCategoryById, updateCategory, inActiveCategory } from '../controller/categoryController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
 
-router.post("/admin/addCategory", validateAccessToken, authorizeRoles("admin"), categoryController.addCategory); // admin
-router.get("/admin/getActiveCategoryList", validateAccessToken, authorizeRoles("admin"), categoryController.getActiveCategoryList); // admin
-router.get("/getCategoryList", validateAccessToken, categoryController.getCategoryList); // user
-router.get("/getCategoryById/:id", validateAccessToken, categoryController.getCategoryById); // both
-router.put("/admin/updateCategory/:id", validateAccessToken, authorizeRoles("admin"), categoryController.updateCategory); // admin
-router.put("/admin/inActiveCategory/:id", validateAccessToken, authorizeRoles("admin"), categoryController.inActiveCategory); // admin
+router.post("/admin/addCategory", validateAccessToken, authorizeRoles("admin"), addCategory); // admin
+router.get("/admin/getActiveCategoryList", validateAccessToken, authorizeRoles("admin"), getActiveCategoryList); // admin
+router.get("/getCategoryList", validateAccessToken, getCategoryList); // user
+router.get("/getCategoryById/:id", validateAccessToken, getCategoryById); // both
+router.put("/admin/updateCategory/:id", validateAccessToken, authorizeRoles("admin"), updateCategory); // admin
+router.put("/admin/inActiveCategory/:id", validateAccessToken, authorizeRoles("admin"), inActiveCategory); // admin
 
-module.exports = router;
+export default router;

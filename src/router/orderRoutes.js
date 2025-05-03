@@ -1,15 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const orderController = require('../controller/orderController');
-const { validateAccessToken, authorizeRoles } = require("../middeleware/auth")
+import { Router } from 'express';
+const router = Router();
+import { placeOrder, getAllUserOrders, getOrderById, getAllOrders, updateOrderStatusByAdmin, assignOrderCourierPatner } from '../controller/orderController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
 
-router.post('/placeOrder', validateAccessToken, orderController.placeOrder); // user
-router.get('/getAllUserOrders', validateAccessToken, orderController.getAllUserOrders); // user
-router.get('/getOrderById/:id', validateAccessToken, orderController.getOrderById); // both
+router.post('/placeOrder', validateAccessToken, placeOrder); // user
+router.get('/getAllUserOrders', validateAccessToken, getAllUserOrders); // user
+router.get('/getOrderById/:id', validateAccessToken, getOrderById); // both
 
-router.get('/admin/getAllOrders', validateAccessToken, authorizeRoles('admin'), orderController.getAllOrders); // admin
+router.get('/admin/getAllOrders', validateAccessToken, authorizeRoles('admin'), getAllOrders); // admin
 
-router.get('/admin/updateOrderStatus', validateAccessToken, orderController.updateOrderStatusByAdmin); // admin 
-router.get('/admin/assignOrderCourierPatner', validateAccessToken, orderController.assignOrderCourierPatner); // admin 
+router.get('/admin/updateOrderStatus', validateAccessToken, updateOrderStatusByAdmin); // admin 
+router.get('/admin/assignOrderCourierPatner', validateAccessToken, assignOrderCourierPatner); // admin 
 
-module.exports = router;
+export default router;

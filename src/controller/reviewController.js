@@ -1,7 +1,8 @@
-const { reviewModel, reviewValidation, inActiveValidation } = require('../model/reviewModel');
-const response = require('../utils/response');
+import model from '../model/reviewModel.js';
+const { reviewModel, reviewValidation, inActiveValidation } = model;
+import response from '../utils/response.js';
 
-module.exports.addReview = async (req, res) => {
+export async function addReview(req, res) {
     const { rating, productId, name, email, comment } = req.body;
     const userId = req.user.id;
 
@@ -28,10 +29,10 @@ module.exports.addReview = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.inActiveReview = async (req, res) => {
-    const {  productId, isActive } = req.body;
+export async function inActiveReview(req, res) {
+    const { productId, isActive } = req.body;
     const userId = req.params.id
 
     const { error } = inActiveValidation.validate(req.body);
@@ -49,4 +50,4 @@ module.exports.inActiveReview = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong while updating your review.', {});
     };
-};
+}

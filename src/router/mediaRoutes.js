@@ -1,21 +1,22 @@
-const express = require('express');
-const router = express.Router();
-const mediaController = require('../controller/mediaController');
-const { validateAccessToken, authorizeRoles } = require("../middeleware/auth")
-const { mediaFile } = require("../utils/commonFunctions");
+import { Router } from 'express';
+const router = Router();
+import { addMedia, addVideoUrl, adminGetAllMedia, getAllMedia, deleteMediaById, inActiveMediaById, addSocialAccountURL, getSocialAccountURL } from '../controller/mediaController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
+import { mediaFile } from "../utils/commonFunctions.js";
 
 
-router.post('/admin/addMedia', mediaFile.fields([{ name: 'image' }]), validateAccessToken, authorizeRoles("admin"), mediaController.addMedia); // admin
-router.post('/admin/addVideoUrl', validateAccessToken, authorizeRoles("admin"), mediaController.addVideoUrl); // admin
+router.post('/admin/addMedia', mediaFile.fields([{ name: 'image' }]), validateAccessToken, authorizeRoles("admin"), addMedia); // admin
+router.post('/admin/addVideoUrl', validateAccessToken, authorizeRoles("admin"), addVideoUrl); // admin
 
-router.get('/admin/getAllMedia/:type', validateAccessToken, authorizeRoles("admin"), mediaController.adminGetAllMedia); // admin
-router.get('/getAllMedia/:type', validateAccessToken, mediaController.getAllMedia); // user
+router.get('/admin/getAllMedia/:type', validateAccessToken, authorizeRoles("admin"), adminGetAllMedia); // admin
+router.get('/getAllMedia/:type', validateAccessToken, getAllMedia); // user
 
-router.delete('/admin/deleteMediaById/:id', validateAccessToken, authorizeRoles("admin"), mediaController.deleteMediaById); // admin
-router.put('/admin/inActiveMediaById/:id', validateAccessToken, authorizeRoles("admin"), mediaController.inActiveMediaById); // admin
+router.delete('/admin/deleteMediaById/:id', validateAccessToken, authorizeRoles("admin"), deleteMediaById); // admin
+router.put('/admin/inActiveMediaById/:id', validateAccessToken, authorizeRoles("admin"), inActiveMediaById); // admin
 
 
-router.post("/admin/addSocialAccountURL", validateAccessToken, authorizeRoles('admin'), mediaController.addSocialAccountURL); // admin || fb, insta, X, etc...
-router.get("/getSocialAccountURL", validateAccessToken, mediaController.getSocialAccountURL);  // user
+router.post("/admin/addSocialAccountURL", validateAccessToken, authorizeRoles('admin'), addSocialAccountURL); // admin || fb, insta, X, etc...
+router.get("/getSocialAccountURL", validateAccessToken, getSocialAccountURL);  // user
 
-module.exports = router;
+export default router;

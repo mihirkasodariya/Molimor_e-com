@@ -1,8 +1,8 @@
-const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation } = require('../model/mediaModel');
+import model from '../model/mediaModel.js';
+const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation } = model;
+import response from '../utils/response.js';
 
-const response = require('../utils/response');
-
-module.exports.addMedia = async (req, res) => {
+export async function addMedia(req, res) {
     try {
         let image = [];
 
@@ -30,9 +30,9 @@ module.exports.addMedia = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.adminGetAllMedia = async (req, res) => {
+export async function adminGetAllMedia(req, res) {
     const { type } = req.params;
     try {
         const media = await mediaModel.find({ type: type, isDelete: false }).sort({ createdAt: -1 });
@@ -46,9 +46,9 @@ module.exports.adminGetAllMedia = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getAllMedia = async (req, res) => {
+export async function getAllMedia(req, res) {
     const { type } = req.params;
     try {
         const media = await mediaModel.find({ type: type, isActive: true, isDelete: false }).sort({ createdAt: -1 });
@@ -62,9 +62,9 @@ module.exports.getAllMedia = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.addVideoUrl = async (req, res) => {
+export async function addVideoUrl(req, res) {
     const { vdoUrl } = req.body;
     const { error } = videoValidation.validate(req.body);
     if (error) {
@@ -80,9 +80,9 @@ module.exports.addVideoUrl = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.deleteMediaById = async (req, res) => {
+export async function deleteMediaById(req, res) {
     const id = req.params.id;
     const { error } = mediaIdValidation.validate(req.params);
     if (error) {
@@ -95,9 +95,9 @@ module.exports.deleteMediaById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.inActiveMediaById = async (req, res) => {
+export async function inActiveMediaById(req, res) {
     const id = req.params.id;
     const isActive = req.body.isActive;
     req.body.id = id;
@@ -112,12 +112,12 @@ module.exports.inActiveMediaById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
 
 
-exports.addSocialAccountURL = async (req, res) => {
-    const {facebook, instagram, linkedin, twitter} = req.body;
+export async function addSocialAccountURL(req, res) {
+    const { facebook, instagram, linkedin, twitter } = req.body;
     const { error } = socialAccountValidation.validate(req.body);
     if (error) {
         return response.error(res, 400, error.details[0].message);
@@ -140,11 +140,11 @@ exports.addSocialAccountURL = async (req, res) => {
         console.error("Error adding/updating social account:", err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
 
 
-exports.getSocialAccountURL = async (req, res) => {
+export async function getSocialAccountURL(req, res) {
     try {
         const link = await socialAccountModel.findOne().lean();
         if (!link) {
@@ -155,4 +155,4 @@ exports.getSocialAccountURL = async (req, res) => {
         console.error("Error fetching social links:", err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}

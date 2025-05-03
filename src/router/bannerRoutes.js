@@ -1,15 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const bannerController = require('../controller/bannerController');
-const { validateAccessToken, authorizeRoles } = require("../middeleware/auth")
-const {bannerImage} = require("../utils/commonFunctions");
+import { Router } from 'express';
+const router = Router();
+import { addBanner, getAllBanner, adminGetAllBanner, deleteBannerById, inActiveBannerById } from '../controller/bannerController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
+import { bannerImage } from "../utils/commonFunctions.js";
 
 
-router.post('/addBanner', bannerImage.single('image'), validateAccessToken, authorizeRoles("admin"), bannerController.addBanner); // admin
-router.get('/getAllBanner', validateAccessToken, bannerController.getAllBanner);  // user
+router.post('/addBanner', bannerImage.single('image'), validateAccessToken, authorizeRoles("admin"), addBanner); // admin
+router.get('/getAllBanner', validateAccessToken, getAllBanner);  // user
 
-router.get('/admin/adminGetAllBanner', validateAccessToken, authorizeRoles("admin"), bannerController.adminGetAllBanner);  // admin
-router.delete('/deleteBannerById/:id', validateAccessToken, authorizeRoles("admin"), bannerController.deleteBannerById); // admin
-router.put('/inActiveBannerById/:id', validateAccessToken, authorizeRoles("admin"), bannerController.inActiveBannerById); // admin
+router.get('/admin/adminGetAllBanner', validateAccessToken, authorizeRoles("admin"), adminGetAllBanner);  // admin
+router.delete('/deleteBannerById/:id', validateAccessToken, authorizeRoles("admin"), deleteBannerById); // admin
+router.put('/inActiveBannerById/:id', validateAccessToken, authorizeRoles("admin"), inActiveBannerById); // admin
 
-module.exports = router;
+export default router;

@@ -1,8 +1,8 @@
-const multer = require('multer');
-var fs = require("fs");
-const path = require('path');
+import multer, { diskStorage } from 'multer';
+import { mkdir, existsSync } from "fs";
+import { extname, join } from 'path';
 
-const saveUserProfile = multer.diskStorage({
+const saveUserProfile = diskStorage({
     destination: function (req, file, cb) {
         cb(null, "./public/userProfile");
     },
@@ -11,80 +11,81 @@ const saveUserProfile = multer.diskStorage({
         cb(null, Date.now() + '-userProfile-' + file.originalname);
     },
 });
-module.exports.saveUserProfile = multer({ storage: saveUserProfile });
+const _saveUserProfile = multer({ storage: saveUserProfile });
+export { _saveUserProfile as saveUserProfile };
 
 
-const productImagesStorage = multer.diskStorage({
+const productImagesStorage = diskStorage({
     destination: function (req, file, cb) {
         const dir = './public/productImages';
-        fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + "-productImage-" + file.originalname);
     },
 });
 
-module.exports.productImage = multer({ storage: productImagesStorage });
+export const productImage = multer({ storage: productImagesStorage });
 
-const excelFileStorage = multer.diskStorage({
+const excelFileStorage = diskStorage({
     destination: (req, file, cb) => {
         const dir = './public/uploadFile';
-        fs.mkdir(dir, { recursive: true }, (err) => cb(err, dir));
+        mkdir(dir, { recursive: true }, (err) => cb(err, dir));
     },
     filename: (req, file, cb) => {
         const timestamp = Date.now();
-        const ext = path.extname(file.originalname);
+        const ext = extname(file.originalname);
         cb(null, `${timestamp}-excel${ext}`);
     },
 });
 
-module.exports.uploadExcelFile = multer({ storage: excelFileStorage });
+export const uploadExcelFile = multer({ storage: excelFileStorage });
 
-module.exports.getAvailableFileName = (dir, baseName, extension) => {
+export function getAvailableFileName(dir, baseName, extension) {
     let counter = 1;
     let fileName = `${baseName}.${extension}`;
-    let filePath = path.join(dir, fileName);
+    let filePath = join(dir, fileName);
 
-    while (fs.existsSync(filePath)) {
+    while (existsSync(filePath)) {
         counter++;
         fileName = `${baseName}(${counter}).${extension}`;
-        filePath = path.join(dir, fileName);
+        filePath = join(dir, fileName);
     };
     return filePath;
-};
+}
 
-const bannerImageStorage = multer.diskStorage({
+const bannerImageStorage = diskStorage({
     destination: function (req, file, cb) {
         const dir = './public/banner';
-        fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + "-banner-" + file.originalname);
     },
 });
-module.exports.bannerImage = multer({ storage: bannerImageStorage });
+export const bannerImage = multer({ storage: bannerImageStorage });
 
 
-const certificateImageStorage = multer.diskStorage({
+const certificateImageStorage = diskStorage({
     destination: function (req, file, cb) {
         const dir = './public/certificate';
-        fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + "-certificate-" + file.originalname);
     },
 });
-module.exports.certificateImage = multer({ storage: certificateImageStorage });
+export const certificateImage = multer({ storage: certificateImageStorage });
 
 
-const mediaStorage = multer.diskStorage({
+const mediaStorage = diskStorage({
     destination: function (req, file, cb) {
         const dir = './public/media';
-        fs.mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + "-media-" + file.originalname);
     },
 });
 
-module.exports.mediaFile = multer({ storage: mediaStorage });
+export const mediaFile = multer({ storage: mediaStorage });

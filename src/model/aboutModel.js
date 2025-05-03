@@ -1,12 +1,11 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
+import mongoose, { Schema as _Schema, model } from "mongoose";
 
-const aboutSchema = new mongoose.Schema({
+const aboutSchema = new _Schema({
   content: String,
-}, {timestamps : true});
+}, { timestamps: true });
 
-const aboutUsModel = mongoose.model('aboutus', aboutSchema);
+const aboutUsModel = model('aboutus', aboutSchema);
 
-module.exports = {
+export default {
   aboutUsModel
 };

@@ -1,5 +1,5 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+import mongoose, { Schema as _Schema, model } from 'mongoose';
 const { Schema } = mongoose;
 
 const productSchema = new Schema({
@@ -11,7 +11,7 @@ const productSchema = new Schema({
     mrp: { type: Number, required: true },
     description: { type: String, required: true },
     benefits: { type: String, required: true },
-    subCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'sub_categorys' },
+    subCategoryId: { type: _Schema.Types.ObjectId, ref: 'sub_categorys' },
     image: [{ type: String }],
     sku: { type: String, required: true, unique: true },
     stock: { type: Number, default: 0 },
@@ -20,7 +20,7 @@ const productSchema = new Schema({
     isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const productModel = mongoose.model('products', productSchema);
+const productModel = model('products', productSchema);
 
 // addProduct
 const productValidation = Joi.object({
@@ -218,8 +218,8 @@ const productFileSchema = Joi.object({
     image3: Joi.string().allow('').optional(),
     image4: Joi.string().allow('').optional(),
     image5: Joi.string().allow('').optional(),
-  });
-module.exports = {
+});
+export default {
     productModel,
     productValidation,
     productSearchValidation,

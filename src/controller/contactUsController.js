@@ -1,7 +1,8 @@
-const { contactModel, contactValidation, companyinfoModel, companyinfoValidation  } = require("../model/contactUsModel");
-const response = require("../utils/response");
+import model from "../model/contactUsModel.js";
+const { contactModel, contactValidation, companyinfoModel, companyinfoValidation } = model;
+import response from "../utils/response.js";
 
-module.exports.addContactUs = async (req, res) => {
+export async function addContactUs(req, res) {
   try {
     const { name, email, message, inquiryType, moq } = req.body;
 
@@ -24,9 +25,9 @@ module.exports.addContactUs = async (req, res) => {
   } catch (err) {
     return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
   }
-};
+}
 
-module.exports.getAllCustomerQuerysList = async (req, res) => {
+export async function getAllCustomerQuerysList(req, res) {
   try {
     const contacts = await contactModel.find().sort({ createdAt: -1 });
     return response.success(res, 200, 'Customer queries fetched successfully.', contacts);
@@ -34,10 +35,10 @@ module.exports.getAllCustomerQuerysList = async (req, res) => {
   } catch (err) {
     return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
   };
-};
+}
 
 
-exports.addCompanyinfo = async (req, res) => {
+export async function addCompanyinfo(req, res) {
   const { content, address, mobile, email } = req.body;
   const { error } = companyinfoValidation.validate(req.body);
   if (error) {
@@ -60,9 +61,9 @@ exports.addCompanyinfo = async (req, res) => {
   } catch (err) {
     return response.error(res, 500, "Oops! Something went wrong. Our team is looking into it.");
   }
-};
+}
 
-exports.getCompanyinfo = async (req, res) => {
+export async function getCompanyinfo(req, res) {
   try {
     const companyInfo = await companyinfoModel.findOne();
 
@@ -74,4 +75,4 @@ exports.getCompanyinfo = async (req, res) => {
   } catch (err) {
     return response.error(res, 500, "Oops! Something went wrong. Our team is looking into it.");
   }
-};
+}

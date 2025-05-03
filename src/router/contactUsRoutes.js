@@ -1,14 +1,15 @@
-const express = require("express");
-const router = express.Router();
-const contactController = require('../controller/contactUsController'); 
-const {validateAccessToken, authorizeRoles} = require("../middeleware/auth")
+import { Router } from "express";
+const router = Router();
+import { addContactUs, getAllCustomerQuerysList, addCompanyinfo, getCompanyinfo } from '../controller/contactUsController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
 
-router.post("/addContactUs", validateAccessToken, authorizeRoles('admin'), contactController.addContactUs); 
-router.get("/getContactUs", contactController.getAllCustomerQuerysList);
-
-
-router.post("/admin/addCompanyinfo", validateAccessToken, authorizeRoles('admin'), contactController.addCompanyinfo); // admin
-router.get("/getCompanyinfo", validateAccessToken, contactController.getCompanyinfo); // user
+router.post("/addContactUs", validateAccessToken, addContactUs);
+router.get("/admin/getContactUs", validateAccessToken, authorizeRoles('admin'), getAllCustomerQuerysList);
 
 
-module.exports = router;
+router.post("/admin/addCompanyinfo", validateAccessToken, authorizeRoles('admin'), addCompanyinfo); // admin
+router.get("/getCompanyinfo", validateAccessToken, getCompanyinfo); // user
+
+
+export default router;

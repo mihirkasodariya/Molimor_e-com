@@ -1,5 +1,5 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+import mongoose, { model } from 'mongoose';
 const { Schema } = mongoose;
 
 const categorySchema = new Schema({
@@ -7,7 +7,7 @@ const categorySchema = new Schema({
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const categoryModel = mongoose.model("categorys", categorySchema);
+const categoryModel = model("categorys", categorySchema);
 
 const categoryValidation = Joi.object({
   name: Joi.string().min(3).max(100).required().messages({
@@ -47,7 +47,7 @@ const categoryInActiveValidation = Joi.object({
   }),
 });
 
-module.exports = {
+export default {
   categoryModel,
   categoryValidation,
   categoryIdValidation,

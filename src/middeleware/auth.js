@@ -1,5 +1,8 @@
-const jwt = require('jsonwebtoken');
-const { userModel } = require('../model/userModel');
+'use strict'
+import jsonwebtoken from 'jsonwebtoken';
+const { sign, verify } = jsonwebtoken;
+import model from '../model/userModel.js';
+const { userModel } = model
 
 const generateJWToken = async (payload) => {
     try {
@@ -9,7 +12,7 @@ const generateJWToken = async (payload) => {
             expiresIn: '30d'
         };
         payload.creationDateTime = Date.now();
-        const token = jwt.sign(payload, secret, signOptions);
+        const token = sign(payload, secret, signOptions);
         return token;
     } catch (error) {
         return (error);
@@ -28,7 +31,7 @@ const validateAccessToken = async (req, res, next) => {
             issuer: 'tracking',
             expiresIn: '30d'
         };
-        const decodedToken = jwt.verify(token, secret, verifyOptions);
+        const decodedToken = verify(token, secret, verifyOptions);
 
         const rootUser = await userModel.findById({ _id: decodedToken.id });
         if (!rootUser) {
@@ -45,15 +48,19 @@ const validateAccessToken = async (req, res, next) => {
 };
 
 const authorizeRoles = (...allowedRoles) => {
-    return (req, res, next) => {
-        if (!req.user || !allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ success: false, status: 0, message: 'Access Denied' });
+    try {
+        return (req, res, next) => {
+            if (!req.user || !allowedRoles.includes(req.user.role)) {
+                return res.status(403).json({ success: false, status: 0, message: 'Access Denied' });
+            };
+            next();
         };
-        next();
+    } catch (error) {
+        return (error)
     };
 };
 
-module.exports = {
+export default {
     generateJWToken,
     validateAccessToken,
     authorizeRoles

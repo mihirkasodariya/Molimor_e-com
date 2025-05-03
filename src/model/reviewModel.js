@@ -1,19 +1,19 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+import mongoose, { Schema as _Schema, model } from 'mongoose';
 const { Schema } = mongoose;
 
 const reviewSchema = new Schema({
   rating: { type: Number, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true },
-  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'products', required: true },
+  userId: { type: _Schema.Types.ObjectId, ref: 'users', required: true },
+  productId: { type: _Schema.Types.ObjectId, ref: 'products', required: true },
   name: { type: String, required: true },
   email: { type: String, required: true },
   comment: { type: String, required: true },
-  isActive: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 
-const reviewModel = mongoose.model('reviews', reviewSchema);
+const reviewModel = model('reviews', reviewSchema);
 
 const reviewValidation = Joi.object({
   rating: Joi.number().min(1).max(5).required().messages({
@@ -71,7 +71,8 @@ const inActiveValidation = Joi.object({
     'string.empty': 'isActive cannot be empty',
   }),
 });
-module.exports = {
+
+export default {
   reviewModel,
   reviewValidation,
   inActiveValidation,

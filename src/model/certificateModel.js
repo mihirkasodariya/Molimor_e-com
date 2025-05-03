@@ -1,5 +1,6 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+
+import mongoose, { model } from 'mongoose';
 const { Schema } = mongoose;
 
 const certificateSchema = new Schema({
@@ -9,7 +10,7 @@ const certificateSchema = new Schema({
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const certificateModel = mongoose.model('crtification', certificateSchema);
+const certificateModel = model('crtification', certificateSchema);
 
 const certificateValidation = Joi.object({
   image: Joi.string().required().messages({
@@ -50,7 +51,7 @@ const bannerActiveValidation = Joi.object({
 });
 
 
-module.exports = {
+export {
   certificateModel,
   certificateValidation,
   bannerIdValidation,

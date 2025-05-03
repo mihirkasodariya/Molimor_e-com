@@ -1,9 +1,12 @@
-const { userModel, userRegisterValidation, userLoginValidation, googleOAuthValidation } = require('../model/userModel');
-const { generateJWToken } = require("../middeleware/auth")
-const response = require('../utils/response');
-const bcrypt = require('bcrypt');
+import model from '../model/userModel.js';
+const { userModel, userRegisterValidation, userLoginValidation, googleOAuthValidation } = model
+import auth from "../middeleware/auth.js";
+const { generateJWToken } = auth;
+import response from '../utils/response.js';
+import { hash, compare } from 'bcrypt';
+import axios from 'axios';
 
-module.exports.register = async (req, res) => {
+export async function register(req, res) {
     const { fname, lname, email, mobile, password, gender, profilePhoto } = req.body;
     const { error } = userRegisterValidation.validate(req.body);
     if (error) {
@@ -14,7 +17,7 @@ module.exports.register = async (req, res) => {
         if (userExists?.email) {
             return response.error(res, 409, 'User Alredy Register', {});
         };
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await hash(password, 10);
         const createNewUser = new userModel({
             ...req.body,
             profilePhoto: req.file?.filename,
@@ -29,7 +32,7 @@ module.exports.register = async (req, res) => {
     };
 };
 
-module.exports.login = async (req, res) => {
+export async function login(req, res) {
     const { email, password } = req.body;
     const { error } = userLoginValidation.validate(req.body);
     if (error) {
@@ -40,7 +43,7 @@ module.exports.login = async (req, res) => {
         if (!user) {
             return response.error(res, 403, 'Account not found. Please check the email entered.');
         };
-        const validPassword = await bcrypt.compare(password, user.password);
+        const validPassword = await compare(password, user.password);
         if (!validPassword) {
             return response.error(res, 401, 'Incorrect password. Please try again.');
         };
@@ -53,7 +56,7 @@ module.exports.login = async (req, res) => {
     };
 };
 
-module.exports.profile = async (req, res) => {
+export async function profile(req, res) {
     try {
         const user = await userModel.findById({ _id: req.user.id }).select('-password');
         if (!user) {
@@ -68,9 +71,9 @@ module.exports.profile = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.updateProfile = async (req, res) => {
+export async function updateProfile(req, res) {
     try {
         const { fname, lname, mobile, gender } = req.body;
         const updatedUser = await userModel.findByIdAndUpdate(
@@ -91,9 +94,9 @@ module.exports.updateProfile = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getGoogleOAuthUrl = async (req, res) => {
+export async function getGoogleOAuthUrl(req, res) {
     try {
         const redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}&scope=openid%20email%20profile`;
         return response.success(res, 200, 'Google OAuth URL generated successfully. Please proceed with the login process', { url: redirectUrl });
@@ -101,10 +104,9 @@ module.exports.getGoogleOAuthUrl = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.googleOAuthLogin = async (req, res) => {
-    const axios = require('axios');
+export async function googleOAuthLogin(req, res) {
 
     const { code } = req.body;
 
@@ -145,13 +147,13 @@ module.exports.googleOAuthLogin = async (req, res) => {
         if (error.response?.data?.error === 'invalid_grant' || error.response?.data?.error_description === 'Bad Request') {
             return response.error(res, 403, 'Authorization code expired. Please try again.', {});
         };
-        console.error('Google signup error:', error.response.data.error);
+        console.error('Google signup error:', error.response?.data?.error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
 
-module.exports.getFacebookOAuthUrl = async (req, res) => {
+export async function getFacebookOAuthUrl(req, res) {
     try {
         const redirectUrl = `https://www.facebook.com/v13.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&scope=email`;
         return response.success(res, 200, 'Facebook OAuth URL generated successfully. Please proceed with the login process', { url: redirectUrl });
@@ -159,9 +161,9 @@ module.exports.getFacebookOAuthUrl = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.facebookOAuthLogin = async (req, res) => {
+export async function facebookOAuthLogin(req, res) {
     const { code } = req.query;
     try {
         const tokenResponse = await axios.get('https://graph.facebook.com/v13.0/oauth/access_token', {
@@ -185,29 +187,29 @@ module.exports.facebookOAuthLogin = async (req, res) => {
         console.error("Facebook Authentication Error:", error);
         res.status(500).send('Authentication failed.');
     };
-};
+}
 
-module.exports.getAllUsers = async (req, res) => {
-    try {
-        const users = await userModel.find({role : "user"}).select('-password', 'profilePhoto');
+// export async function getAllUsers(req, res) {
+//     try {
+//         const users = await userModel.find({role : "user"}).select('-password', 'profilePhoto');
 
-        if (!users || users.length === 0) {
-            return response.error(res, 403, 'No users found.');
-        };
-        // const updatedUsers = users.map(user => ({
-        //     ...user._doc,
-        //     profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
-        // }));
+//         if (!users || users.length === 0) {
+//             return response.error(res, 403, 'No users found.');
+//         };
+//         // const updatedUsers = users.map(user => ({
+//         //     ...user._doc,
+//         //     profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
+//         // }));
 
-        return response.success(res, 200, 'Users fetched successfully', users);
-    } catch (err) {
-        console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
-    };
-};
+//         return response.success(res, 200, 'Users fetched successfully', users);
+//     } catch (err) {
+//         console.error(err);
+//         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+//     };
+// }
 
 
-module.exports.getUserById = async (req, res) => {
+export async function getUserById(req, res) {
     const id = req.params.id;
 
     try {
@@ -224,9 +226,9 @@ module.exports.getUserById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.updateUserById = async (req, res) => {
+export async function updateUserById(req, res) {
     const id = req.params.id;
     const updateData = req.body;
     try {
@@ -244,24 +246,24 @@ module.exports.updateUserById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.inActiveUserById = async (req, res) => {
+export async function inActiveUserById(req, res) {
     const id = req.params.id;
     const isActive = req.body.isActive;
     try {
-        const inActiveUser = await userModel.findByIdAndUpdate(id, {isActive:isActive}, { new: true, runValidators: true }).select('-password');
+        const inActiveUser = await userModel.findByIdAndUpdate(id, { isActive: isActive }, { new: true, runValidators: true }).select('-password');
         return response.success(res, 200, 'User fetched successfully', inActiveUser);
     } catch (err) {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
 
-module.exports.getAllUsers = async (req, res) => {
+export async function getAllUsers(req, res) {
     try {
-        const users = await userModel.find({role : "user"}).select('-password', 'profilePhoto');
+        const users = await userModel.find({ role: "user" }).select('-password');
 
         if (!users || users.length === 0) {
             return response.error(res, 403, 'No users found.');
@@ -276,5 +278,5 @@ module.exports.getAllUsers = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 

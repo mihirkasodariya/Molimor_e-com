@@ -1,6 +1,7 @@
-const { orderModel, orderValidation, getOrderValidation } = require('../model/orderModel');
-const response = require('../utils/response');
-module.exports.placeOrder = async (req, res) => {
+import model from '../model/orderModel.js';
+const { orderModel, orderValidation, getOrderValidation } = model;
+import response from '../utils/response.js';
+export async function placeOrder(req, res) {
     const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCharge, mobile, email, orderNote } = req.body;
 
     const { error } = orderValidation.validate(req.body);
@@ -40,9 +41,9 @@ module.exports.placeOrder = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getAllUserOrders = async (req, res) => {
+export async function getAllUserOrders(req, res) {
     try {
         const userId = req.user.id;
         let orders = await orderModel.find({ userId }).populate("items.productId").sort({ createdAt: -1 });
@@ -66,16 +67,16 @@ module.exports.getAllUserOrders = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getOrderById = async (req, res) => {
+export async function getOrderById(req, res) {
     const orderId = req.params.id;
     const { error } = getOrderValidation.validate(req.params);
     if (error) {
         return response.error(res, 400, error.details[0].message);
     };
     try {
-        const order = await orderModel.findOne({ orderId: orderId}).populate("items.productId");
+        const order = await orderModel.findOne({ orderId: orderId }).populate("items.productId");
         if (!order) {
             return response.error(res, 403, 'Order not found.');
         };
@@ -96,10 +97,10 @@ module.exports.getOrderById = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
 // admin
-module.exports.getAllOrders = async (req, res) => {
+export async function getAllOrders(req, res) {
     try {
         const { status, customerId, startDate, endDate, page = 1, limit = 10 } = req.query;
         const filter = {};
@@ -142,7 +143,7 @@ module.exports.getAllOrders = async (req, res) => {
             orders: updatedOrders,
             page: parseInt(page),
             limit: parseInt(limit),
-            totalRecords : totalOrders,
+            totalRecords: totalOrders,
             totalPages: totalPages
         });
 
@@ -150,24 +151,24 @@ module.exports.getAllOrders = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.updateOrderStatusByAdmin = async (req, res) => {
+export async function updateOrderStatusByAdmin(req, res) {
 
     try {
         return response.success(res, 200, 'Order status updated successfully', updatedOrder);
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});  
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.assignOrderCourierPatner = async (req, res) => {
+export async function assignOrderCourierPatner(req, res) {
     try {
 
         return response.success(res, 200, 'Courier partner assigned and order status updated successfully', updatedOrder);
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});  
+        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}

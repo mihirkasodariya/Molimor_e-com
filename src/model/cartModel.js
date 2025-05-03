@@ -1,20 +1,20 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+import mongoose, { Schema as _Schema, model } from 'mongoose';
 const { Schema } = mongoose;
 
 const cartItemSchema = new Schema({
-    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'products', required: true },
+    productId: { type: _Schema.Types.ObjectId, ref: 'products', required: true },
     quantity: { type: Number, required: true, default: 1 },
     isDelete: { type: Boolean, default: false }
-},{ timestamps: true })
+}, { timestamps: true })
 
 const cartSchema = new Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'users', required: true, unique: true },
+    userId: { type: _Schema.Types.ObjectId, ref: 'users', required: true, unique: true },
     items: [cartItemSchema],
     isActive: { type: Boolean, default: true },
 });
 
-const cartModel = mongoose.model('cart', cartSchema);
+const cartModel = model('cart', cartSchema);
 
 const cartItemValidation = Joi.object({
     productId: Joi.string().length(24).required().messages({
@@ -47,7 +47,7 @@ const updateCartValidation = Joi.object({
 });
 
 
-module.exports = {
+export default {
     cartModel,
     cartValidation,
     updateCartValidation

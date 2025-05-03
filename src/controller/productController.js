@@ -1,7 +1,8 @@
-const { productModel, productValidation, updateProductValidation, productFileSchema} = require('../model/productModel');
-const response = require('../utils/response');
-const { getAvailableFileName } = require('../utils/commonFunctions');
-module.exports.addSingleProduct = async (req, res) => {
+import model from '../model/productModel.js';
+const { productModel, productValidation, updateProductValidation, productFileSchema } = model
+import response from '../utils/response.js';
+import { getAvailableFileName } from '../utils/commonFunctions.js';
+export async function addSingleProduct(req, res) {
     const { title, shortDescription, isFeatured, weight, price, mrp, description, benefits, subCategoryId, image, sku, stock, quantity, isActive } = req.body;
 
     let isFeaturedConvertArry = [];
@@ -32,11 +33,11 @@ module.exports.addSingleProduct = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getAllProductsList = async (req, res) => {
+export async function getAllProductsList(req, res) {
     try {
-        const products = await productModel.find({isActive : true, isDelete : false}).sort({ createdAt: -1 });
+        const products = await productModel.find({ isActive: true, isDelete: false }).sort({ createdAt: -1 });
         if (!products?.length === 0) {
             return response.error(res, 403, 'No products found', {});
         };
@@ -49,11 +50,11 @@ module.exports.getAllProductsList = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     }
-};
+}
 
-module.exports.getAllAdminProductsList = async (req, res) => {
+export async function getAllAdminProductsList(req, res) {
     try {
-        const products = await productModel.find({isDelete : false}).sort({ createdAt: -1 });
+        const products = await productModel.find({ isDelete: false }).sort({ createdAt: -1 });
         if (!products?.length === 0) {
             return response.error(res, 403, 'No products found', {});
         };
@@ -66,8 +67,8 @@ module.exports.getAllAdminProductsList = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     }
-};
-module.exports.getProductById = async (req, res) => {
+}
+export async function getProductById(req, res) {
     const { id } = req.params;
     try {
         const product = await productModel.findById(id).populate("subCategoryId");
@@ -83,9 +84,9 @@ module.exports.getProductById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Something went wrong. Please try again later.');
     };
-};
+}
 
-module.exports.updateSingleProduct = async (req, res) => {
+export async function updateSingleProduct(req, res) {
     const { id } = req.params;
 
     let isFeaturedConvertArry = [];
@@ -126,9 +127,9 @@ module.exports.updateSingleProduct = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.');
     };
-};
+}
 
-module.exports.inActiveProductById = async (req, res) => {
+export async function inActiveProductById(req, res) {
     const { id } = req.params;
     try {
         const user = await productModel.findById({ _id: id });
@@ -144,9 +145,9 @@ module.exports.inActiveProductById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Something went wrong. Please try again later.');
     };
-};
+}
 
-module.exports.deleteProductById = async (req, res) => {
+export async function deleteProductById(req, res) {
     const { id } = req.params;
     try {
         const user = await productModel.findById({ _id: id });
@@ -163,9 +164,9 @@ module.exports.deleteProductById = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Something went wrong. Please try again later.');
     };
-};
+}
 
-module.exports.searchProduct = async (req, res) => {
+export async function searchProduct(req, res) {
     try {
         const { searchProduct } = req.params;
 
@@ -188,9 +189,9 @@ module.exports.searchProduct = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.downloadAddBulkProductTemplate = async (req, res) => {
+export async function downloadAddBulkProductTemplate(req, res) {
     const xlsx = require('xlsx');
     const path = require('path');
     const fs = require('fs');
@@ -246,54 +247,54 @@ module.exports.downloadAddBulkProductTemplate = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     }
-};
+}
 
-module.exports.uploadBulkProductsFile = async (req, res) => {
+export async function uploadBulkProductsFile(req, res) {
     const xlsx = require('xlsx');
     const path = require('path');
     const fs = require('fs');
     try {
-      if (!req.file) {
-        return response.error(res, 403, 'No file uploaded.', {});
-      }
-      const workbook = xlsx.readFile(req.file.path);
-      const data = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-  
-      const products = data.map((row, i) => {
-        const { error, value } = productFileSchema.validate(row);
-        if (error) {
-            return response.error(res, 400, error.details[0].message);
-        };
+        if (!req.file) {
+            return response.error(res, 403, 'No file uploaded.', {});
+        }
+        const workbook = xlsx.readFile(req.file.path);
+        const data = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-        return {
-          ...value,
-          isActive: value.isActive === true || value.isActive === 'true',
-          isFeatured: [
-            value.isFeatured1 || '',
-            value.isFeatured2,
-            value.isFeatured3,
-            value.isFeatured4,
-            value.isFeatured5,
-            value.isFeatured6,
-          ],
-          image: [
-            value.image1 || '',
-            value.image2,
-            value.image3,
-            value.image4,
-            value.image5,
-          ]
-        };
-      });
-  
-      await productModel.insertMany(products);
-      fs.unlinkSync(req.file.path);
-      response.success(res, 200, 'Products uploaded successfully!', {});
+        const products = data.map((row, i) => {
+            const { error, value } = productFileSchema.validate(row);
+            if (error) {
+                return response.error(res, 400, error.details[0].message);
+            };
+
+            return {
+                ...value,
+                isActive: value.isActive === true || value.isActive === 'true',
+                isFeatured: [
+                    value.isFeatured1 || '',
+                    value.isFeatured2,
+                    value.isFeatured3,
+                    value.isFeatured4,
+                    value.isFeatured5,
+                    value.isFeatured6,
+                ],
+                image: [
+                    value.image1 || '',
+                    value.image2,
+                    value.image3,
+                    value.image4,
+                    value.image5,
+                ]
+            };
+        });
+
+        await productModel.insertMany(products);
+        fs.unlinkSync(req.file.path);
+        response.success(res, 200, 'Products uploaded successfully!', {});
 
     } catch (error) {
-      if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-      response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     }
-  };
+}
 
 

@@ -1,5 +1,6 @@
-const Joi = require('joi');
-const mongoose = require('mongoose');
+import Joi from 'joi';
+
+import mongoose, { model, Schema as _Schema } from 'mongoose';
 const { Schema } = mongoose;
 
 const mediaSchema = new Schema({
@@ -9,7 +10,7 @@ const mediaSchema = new Schema({
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const mediaModel = mongoose.model('medias', mediaSchema);
+const mediaModel = model('medias', mediaSchema);
 
 
 const mediaValidation = Joi.object({
@@ -38,24 +39,24 @@ const mediaValidation = Joi.object({
 
 const videoValidation = Joi.object({
   vdoUrl: Joi.string().min(1).required().messages({
-      'string.base': 'Video URL must be a valid string.',
-      'string.empty': 'Video URL cannot be empty.',
-      'string.min': 'Video URL must be at least 1 character long.',
-      'any.required': 'Video URL is required.'
-    }),
+    'string.base': 'Video URL must be a valid string.',
+    'string.empty': 'Video URL cannot be empty.',
+    'string.min': 'Video URL must be at least 1 character long.',
+    'any.required': 'Video URL is required.'
+  }),
 
   type: Joi.string().optional().messages({
-      'any.only': 'Type must be either "image" or "video".',
-      'any.required': 'Type is required when specified.'
-    }),
+    'any.only': 'Type must be either "image" or "video".',
+    'any.required': 'Type is required when specified.'
+  }),
 
   isDelete: Joi.boolean().default(false).messages({
-      'boolean.base': 'Delete flag must be a boolean value.'
-    }),
+    'boolean.base': 'Delete flag must be a boolean value.'
+  }),
 
   isActive: Joi.boolean().default(true).messages({
-      'boolean.base': 'Active flag must be a boolean value.'
-    })
+    'boolean.base': 'Active flag must be a boolean value.'
+  })
 }, { timestamps: true });
 
 
@@ -85,15 +86,15 @@ const mediaActiveValidation = Joi.object({
 });
 
 // Social Account
-const socialAccountSchema = new mongoose.Schema({
+const socialAccountSchema = new _Schema({
   facebook: { type: String },
   instagram: { type: String },
   linkedin: { type: String },
   twitter: { type: String },
-  isActive: {type: Boolean,default: true,},
+  isActive: { type: Boolean, default: true, },
 });
 
-const socialAccountModel = mongoose.model("social_accounts", socialAccountSchema);
+const socialAccountModel = model("social_accounts", socialAccountSchema);
 
 const socialAccountValidation = Joi.object({
   facebook: Joi.string().optional().messages({
@@ -120,7 +121,7 @@ const socialAccountValidation = Joi.object({
 });
 
 
-module.exports = {
+export default {
   mediaModel,
   mediaValidation,
   videoValidation,

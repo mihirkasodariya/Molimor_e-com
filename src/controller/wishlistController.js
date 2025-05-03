@@ -1,7 +1,8 @@
-const {  wishlistModel, wishlistActionValidation } = require('../model/wishlistModel');
-const response = require('../utils/response');
+import model from '../model/wishlistModel.js';
+const { wishlistModel, wishlistActionValidation } = model;
+import response from '../utils/response.js';
 
-module.exports.addWishlist = async (req, res) => {
+export async function addWishlist(req, res) {
     const { productId } = req.body;
     const userId = req.user.id;
 
@@ -29,9 +30,9 @@ module.exports.addWishlist = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getWishlist = async (req, res) => {
+export async function getWishlist(req, res) {
     const userId = req.user.id;
     try {
         const wishlist = await wishlistModel.findOne({ userId }).populate('items.productId');
@@ -43,9 +44,9 @@ module.exports.getWishlist = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.removeFromWishlist = async (req, res) => {
+export async function removeFromWishlist(req, res) {
     const { productId } = req.params;
     const userId = req.user.id;
     const { error } = wishlistActionValidation.validate(req.params);
@@ -69,4 +70,4 @@ module.exports.removeFromWishlist = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}

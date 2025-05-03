@@ -1,10 +1,10 @@
-const Joi = require("joi");
-const mongoose = require("mongoose");
+import Joi from 'joi';
+import { Schema, model } from "mongoose";
 
-const contactSchema = new mongoose.Schema(
+const contactSchema = new Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "users",
       required: true,
     },
@@ -17,20 +17,11 @@ const contactSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const contactModel = mongoose.model("Contact", contactSchema);
+const contactModel = model("Contact", contactSchema);
 
 
 
 const contactValidation = Joi.object({
-  userId: Joi.string()
-    .pattern(/^[0-9a-fA-F]{24}$/)
-    .required()
-    .messages({
-      'string.pattern.base': 'Invalid userId: must be a valid MongoDB ObjectId',
-      'any.required': 'User ID is required',
-      'string.base': 'User ID must be a string'
-    }),
-
   name: Joi.string()
     .min(2)
     .max(100)
@@ -77,16 +68,16 @@ const contactValidation = Joi.object({
 
 
 
-const companyInfoSchema = new mongoose.Schema(
+const companyInfoSchema = new Schema(
   {
     content: { type: String, required: true },
     address: { type: String, required: true },
     mobile: { type: String, required: true },
-    email: { type: String, required: true, trim: true, lowercase: true},
+    email: { type: String, required: true, trim: true, lowercase: true },
   },
   { timestamps: true }
 );
-const companyinfoModel = mongoose.model("company_info", companyInfoSchema);
+const companyinfoModel = model("company_info", companyInfoSchema);
 
 
 const companyinfoValidation = Joi.object({
@@ -113,7 +104,7 @@ const companyinfoValidation = Joi.object({
   }),
 });
 
-module.exports = {
+export default {
   contactModel,
   contactValidation,
 

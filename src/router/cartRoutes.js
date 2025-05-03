@@ -1,11 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const cartController = require('../controller/cartController');
-const {validateAccessToken} = require("../middeleware/auth")
+import { Router } from 'express';
+const router = Router();
+import { addToCart, getUserCart, updateCartByProductId, deleteCartByProductId } from '../controller/cartController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
 
-router.post('/addToCart', validateAccessToken, cartController.addToCart); // user
-router.get('/getUserCart', validateAccessToken, cartController.getUserCart); // user
-router.put('/updateCartByProductId/:productId', validateAccessToken, cartController.updateCartByProductId); // user
-router.delete('/deleteCartByProductId/:productId', validateAccessToken, cartController.deleteCartByProductId); // user
+router.post('/addToCart', validateAccessToken, addToCart); // user
+router.get('/getUserCart', validateAccessToken, getUserCart); // user
+router.put('/updateCartByProductId/:productId', validateAccessToken, updateCartByProductId); // user
+router.delete('/deleteCartByProductId/:productId', validateAccessToken, deleteCartByProductId); // user
 
-module.exports = router;
+export default router;

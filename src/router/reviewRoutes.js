@@ -1,9 +1,10 @@
-const express = require('express');
-const router = express.Router();
-const reviewController = require('../controller/reviewController');
-const { validateAccessToken, authorizeRoles } = require("../middeleware/auth")
+import { Router } from 'express';
+const router = Router();
+import { addReview, inActiveReview } from '../controller/reviewController.js';
+import auth from "../middeleware/auth.js";
+const { validateAccessToken, authorizeRoles } = auth;
 
-router.post('/addReview', validateAccessToken, reviewController.addReview); // user
-router.delete('/admin/inActiveReview/:id', validateAccessToken, authorizeRoles('admin'), reviewController.inActiveReview); // admin
+router.post('/addReview', validateAccessToken, addReview); // user
+router.delete('/admin/inActiveReview/:id', validateAccessToken, authorizeRoles('admin'), inActiveReview); // admin
 
-module.exports = router;
+export default router;

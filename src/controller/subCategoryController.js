@@ -1,8 +1,10 @@
-const { subCategoryModel, subCategoryValidation, subCategoryIdValidation, inActiveSubCategoryValidation } = require("../model/subCategoryModel");
-const { categoryModel } = require("../model/categoryModel")
-const response = require('../utils/response');
+import model from "../model/subCategoryModel.js";
+const { subCategoryModel, subCategoryValidation, subCategoryIdValidation, inActiveSubCategoryValidation } = model;
+import subModel from "../model/categoryModel.js";
+const { categoryModel } = subModel;
+import response from '../utils/response.js';
 
-exports.addSubCategory = async (req, res) => {
+export async function addSubCategory(req, res) {
     const { name, categoryId } = req.body;
 
     const { error } = subCategoryValidation.validate(req.body);
@@ -20,27 +22,27 @@ exports.addSubCategory = async (req, res) => {
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.getSubCategoryList = async (req, res) => {
+export async function getSubCategoryList(req, res) {
     try {
         const categories = await subCategoryModel.find({}).sort({ createdAt: -1 });
         return response.success(res, 200, 'Categories fetched successfully', categories);
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.getActiveSubCategoryList = async (req, res) => {
+export async function getActiveSubCategoryList(req, res) {
     try {
-        const categories = await subCategoryModel.find({isActive : true}).populate("categoryId").sort({ createdAt: -1 });
+        const categories = await subCategoryModel.find({ isActive: true }).populate("categoryId").sort({ createdAt: -1 });
         return response.success(res, 200, 'Categories fetched successfully', categories);
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.getSubCategoryById = async (req, res) => {
+export async function getSubCategoryById(req, res) {
     const { error } = subCategoryIdValidation.validate(req.params);
     if (error) {
         return response.error(res, 400, error.details[0].message);
@@ -54,9 +56,9 @@ exports.getSubCategoryById = async (req, res) => {
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.updateSubCategory = async (req, res) => {
+export async function updateSubCategory(req, res) {
     const { name, categoryId } = req.body;
     const { error } = subCategoryValidation.validate(req.body, req.params);
     if (error) {
@@ -75,11 +77,11 @@ exports.updateSubCategory = async (req, res) => {
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-exports.inActiveSubcategory = async (req, res) => {
+export async function inActiveSubcategory(req, res) {
     const { isActive } = req.body;
-    const {id} = req.params;
+    const { id } = req.params;
 
     const { error } = inActiveSubCategoryValidation.validate(req.body);
     if (error) {
@@ -98,4 +100,4 @@ exports.inActiveSubcategory = async (req, res) => {
     } catch (error) {
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}

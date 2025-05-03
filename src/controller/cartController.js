@@ -1,7 +1,8 @@
-const { cartModel, cartValidation, updateCartValidation } = require('../model/cartModel')
-const response = require('../utils/response');
+import model from '../model/cartModel.js';
+const { cartModel, cartValidation, updateCartValidation } = model;
+import response from '../utils/response.js';
 
-module.exports.addToCart = async (req, res) => {
+export async function addToCart(req, res) {
     const { items, isActive } = req.body;
     const { error } = cartValidation.validate(req.body);
     if (error) {
@@ -34,9 +35,9 @@ module.exports.addToCart = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.getUserCart = async (req, res) => {
+export async function getUserCart(req, res) {
     try {
         const getUserCart = await cartModel.findOne({ userId: req.user.id }).populate("items.productId");;
 
@@ -50,9 +51,9 @@ module.exports.getUserCart = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.updateCartByProductId = async (req, res) => {
+export async function updateCartByProductId(req, res) {
     const { productId } = req.params;
     const { quantity } = req.body;
     const { error } = updateCartValidation.validate(req.body);
@@ -82,9 +83,9 @@ module.exports.updateCartByProductId = async (req, res) => {
         console.error(error);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 
-module.exports.deleteCartByProductId = async (req, res) => {
+export async function deleteCartByProductId(req, res) {
     const { productId } = req.params;
     try {
         const userCart = await cartModel.findOne({ userId: req.user.id });
@@ -109,5 +110,5 @@ module.exports.deleteCartByProductId = async (req, res) => {
         console.error(err);
         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
     };
-};
+}
 

@@ -1,12 +1,15 @@
 import model from '../model/orderModel.js';
 const { orderModel, orderValidation, getOrderValidation } = model;
 import response from '../utils/response.js';
+import constants from '../utils/constants.js';
+const { resStatusCode, resMessage } = constants;
+
 export async function placeOrder(req, res) {
     const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCharge, mobile, email, orderNote } = req.body;
 
     const { error } = orderValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         let totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -36,12 +39,12 @@ export async function placeOrder(req, res) {
             orderNote
         });
 
-        return response.success(res, 201, 'Order placed successfully', order);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDER_PLACED, order);
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function getAllUserOrders(req, res) {
     try {
@@ -49,7 +52,7 @@ export async function getAllUserOrders(req, res) {
         let orders = await orderModel.find({ userId }).populate("items.productId").sort({ createdAt: -1 });
 
         if (!orders || orders?.length === 0) {
-            return response.error(res, 403, 'No orders found');
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
         const updatedOrders = orders.map(order => {
             const updatedItems = order.items.map(item => {
@@ -62,23 +65,23 @@ export async function getAllUserOrders(req, res) {
             });
             return { ...order._doc, items: updatedItems };
         });
-        return response.success(res, 200, 'Orders retrieved successfully', updatedOrders);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, updatedOrders);
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function getOrderById(req, res) {
     const orderId = req.params.id;
     const { error } = getOrderValidation.validate(req.params);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const order = await orderModel.findOne({ orderId: orderId }).populate("items.productId");
         if (!order) {
-            return response.error(res, 403, 'Order not found.');
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
         const updatedItems = order.items.map(item => {
             if (item.productId && Array.isArray(item.productId.image)) {
@@ -92,12 +95,12 @@ export async function getOrderById(req, res) {
         });
         const updatedOrder = { ...order._doc, items: updatedItems };
 
-        return response.success(res, 200, 'Order retrieved successfully', updatedOrder);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, updatedOrder);
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 // admin
 export async function getAllOrders(req, res) {
@@ -122,7 +125,7 @@ export async function getAllOrders(req, res) {
             .limit(parseInt(limit));
 
         if (!orders || orders.length === 0) {
-            return response.error(res, 404, 'No orders found');
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
 
         const updatedOrders = orders.map(order => {
@@ -139,7 +142,7 @@ export async function getAllOrders(req, res) {
 
         const totalPages = Math.ceil(totalOrders / parseInt(limit));
 
-        return response.success(res, 200, 'Orders retrieved successfully', {
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, {
             orders: updatedOrders,
             page: parseInt(page),
             limit: parseInt(limit),
@@ -149,26 +152,26 @@ export async function getAllOrders(req, res) {
 
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function updateOrderStatusByAdmin(req, res) {
 
     try {
-        return response.success(res, 200, 'Order status updated successfully', updatedOrder);
+        return response.success(res, req?.languageCode, 200, 'Order status updated successfully', updatedOrder);
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function assignOrderCourierPatner(req, res) {
     try {
 
-        return response.success(res, 200, 'Courier partner assigned and order status updated successfully', updatedOrder);
+        return response.success(res, req?.languageCode, 200, 'Courier partner assigned and order status updated successfully', updatedOrder);
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};

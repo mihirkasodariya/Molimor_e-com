@@ -1,7 +1,7 @@
 import { Router } from 'express';
 const router = Router();
 import { register, login, profile, updateProfile, getGoogleOAuthUrl, googleOAuthLogin, getFacebookOAuthUrl, facebookOAuthLogin, getAllUsers, getUserById, updateUserById, inActiveUserById } from '../controller/userController.js';
-import { saveUserProfile } from '../utils/commonFunctions.js';
+import { saveUserProfile } from '../utils/multerStorage.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
 

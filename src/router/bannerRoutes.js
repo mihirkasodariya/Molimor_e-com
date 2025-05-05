@@ -3,7 +3,7 @@ const router = Router();
 import { addBanner, getAllBanner, adminGetAllBanner, deleteBannerById, inActiveBannerById } from '../controller/bannerController.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
-import { bannerImage } from "../utils/commonFunctions.js";
+import { bannerImage } from "../utils/multerStorage.js";
 
 
 router.post('/addBanner', bannerImage.single('image'), validateAccessToken, authorizeRoles("admin"), addBanner); // admin

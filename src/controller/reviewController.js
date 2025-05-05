@@ -1,6 +1,8 @@
 import model from '../model/reviewModel.js';
 const { reviewModel, reviewValidation, inActiveValidation } = model;
 import response from '../utils/response.js';
+import constants from '../utils/constants.js';
+const { resStatusCode, resMessage } = constants;
 
 export async function addReview(req, res) {
     const { rating, productId, name, email, comment } = req.body;
@@ -8,13 +10,13 @@ export async function addReview(req, res) {
 
     const { error } = reviewValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         let existsReview = await reviewModel.findOne({ productId, userId });
 
         if (existsReview) {
-            return response.error(res, 403, 'You have already submitted a review for this product.');
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.REVIEW_ALREADY_SUBMITTED, {});
         };
         const addReview = await reviewModel.create({
             rating,
@@ -24,12 +26,12 @@ export async function addReview(req, res) {
             email,
             comment
         });
-        return response.success(res, 200, 'Thank you! Your review has been submitted successfully.', addReview);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.REVIEW_SUBMITTED, addReview);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function inActiveReview(req, res) {
     const { productId, isActive } = req.body;
@@ -37,7 +39,7 @@ export async function inActiveReview(req, res) {
 
     const { error } = inActiveValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const updatedReview = await reviewModel.findOneAndUpdate(
@@ -45,9 +47,9 @@ export async function inActiveReview(req, res) {
             { isActive },
             { new: true }
         );
-        return response.success(res, 200, 'Your review has been updated successfully.', updatedReview);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.REVIEW_INACTIVATED, updatedReview);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong while updating your review.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};

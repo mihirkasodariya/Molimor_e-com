@@ -1,7 +1,9 @@
 import model from '../model/aboutModel.js';
 const { aboutUsModel } = model;
-
 import response from "../utils/response.js";
+import constants from '../utils/constants.js';
+const { resStatusCode, resMessage } = constants;
+
 
 export async function addAbout(req, res) {
   try {
@@ -12,22 +14,22 @@ export async function addAbout(req, res) {
 
     if (!existing) {
       aboutus = await aboutUsModel.create({ content });
-      return response.success(res, 200, "About Us created successfully", aboutus);
+      return response.success(res, resStatusCode.ACTION_COMPLETE, resMessage.ABOUT_US_CREATED, aboutus);
     } else {
       aboutus = await aboutUsModel.findOneAndUpdate({}, { content }, { new: true });
-      return response.success(res, 200, "About Us updated successfully", aboutus);
+      return response.success(res, resStatusCode.ACTION_COMPLETE, resMessage.ABOUT_US_UPDATED, aboutus);
     };
   } catch (error) {
-    return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
   };
-}
+};
 
 
 export async function getAbout(req, res) {
   try {
     const aboutData = await aboutUsModel.find();
-    return response.success(res, 200, "About Us updated successfully", aboutData);
+    return response.success(res, resStatusCode.ACTION_COMPLETE, resMessage.ABOUT_US_RETRIEVED, aboutData);
   } catch (error) {
-    res.send({ success: false, error: error.message });
-  }
-}
+    return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+  };
+};

@@ -1,6 +1,8 @@
 import model from '../model/mediaModel.js';
 const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation } = model;
 import response from '../utils/response.js';
+import constants from '../utils/constants.js';
+const { resStatusCode, resMessage } = constants;
 
 export async function addMedia(req, res) {
     try {
@@ -16,7 +18,7 @@ export async function addMedia(req, res) {
             image.map(async (file) => {
                 const { error } = mediaValidation.validate({ image: [file?.filename] });
                 if (error) {
-                    return response.error(res, 400, error.details[0].message);
+                    return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
                 };
                 return mediaModel.create({
                     file: file.filename,
@@ -24,13 +26,12 @@ export async function addMedia(req, res) {
                 });
             }),
         );
-
-        return response.success(res, 200, 'Media uploaded successfully', savedMedia);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_UPLOADED, savedMedia);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function adminGetAllMedia(req, res) {
     const { type } = req.params;
@@ -38,15 +39,15 @@ export async function adminGetAllMedia(req, res) {
         const media = await mediaModel.find({ type: type, isDelete: false }).sort({ createdAt: -1 });
 
         if (!media.length) {
-            return response.success(res, 200, 'No Media found', []);
+            return response.success(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_MEDIA_FOUND, []);
         };
 
-        return response.success(res, 200, 'Media retrieved successfully', media);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_RETRIEVED, media);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function getAllMedia(req, res) {
     const { type } = req.params;
@@ -54,48 +55,47 @@ export async function getAllMedia(req, res) {
         const media = await mediaModel.find({ type: type, isActive: true, isDelete: false }).sort({ createdAt: -1 });
 
         if (!media.length) {
-            return response.success(res, 200, 'No Media found', []);
+            return response.success(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_MEDIA_FOUND, []);
         };
-
-        return response.success(res, 200, 'Media retrieved successfully', media);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_RETRIEVED, media);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function addVideoUrl(req, res) {
     const { vdoUrl } = req.body;
     const { error } = videoValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         mediaModel.create({
             file: vdoUrl,
             type: 'vdo'
         });
-        return response.success(res, 200, 'Video URL added successfully', { vdoUrl });
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.VIDEO_URL_ADDED, { vdoUrl });
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function deleteMediaById(req, res) {
     const id = req.params.id;
     const { error } = mediaIdValidation.validate(req.params);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const deleteMediaById = await mediaModel.findByIdAndUpdate(id, { isDelete: true, isActive: false }, { new: true });
-        return response.success(res, 200, 'Media deleted successfully', deleteMediaById);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_DELETED, deleteMediaById);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function inActiveMediaById(req, res) {
     const id = req.params.id;
@@ -103,24 +103,22 @@ export async function inActiveMediaById(req, res) {
     req.body.id = id;
     let { error } = mediaActiveValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const inActiveMedia = await mediaModel.findByIdAndUpdate(id, { isActive }, { new: true });
-        return response.success(res, 200, 'Media inactivated successfully', inActiveMedia);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_INACTIVATED, inActiveMedia);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
-
-
+};
 
 export async function addSocialAccountURL(req, res) {
     const { facebook, instagram, linkedin, twitter } = req.body;
     const { error } = socialAccountValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const existingLink = await socialAccountModel.findOne().lean();
@@ -128,31 +126,26 @@ export async function addSocialAccountURL(req, res) {
         let result;
         if (!existingLink) {
             result = await socialAccountModel.create(req.body);
-            return response.success(res, 200, "Social links created successfully.", result);
+            return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, SOCIAL_LINKS_CREATED, result);
         } else {
             result = await socialAccountModel.findOneAndUpdate({}, req.body, {
                 new: true,
                 upsert: true,
             });
-            return response.success(res, 200, "Social links updated successfully.", result);
+            return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.SOCIAL_LINKS_UPDATED, result);
         };
     } catch (err) {
         console.error("Error adding/updating social account:", err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
-
-
+};
 
 export async function getSocialAccountURL(req, res) {
     try {
         const link = await socialAccountModel.findOne().lean();
-        if (!link) {
-            return response.success(res, 200, "No social links found.", {});
-        };
-        return response.success(res, 200, "Social links retrieved successfully.", link);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.SOCIAL_LINKS_RETRIEVED, link);
     } catch (err) {
         console.error("Error fetching social links:", err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};

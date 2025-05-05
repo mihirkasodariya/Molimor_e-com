@@ -3,7 +3,7 @@ const router = Router();
 import { addMedia, addVideoUrl, adminGetAllMedia, getAllMedia, deleteMediaById, inActiveMediaById, addSocialAccountURL, getSocialAccountURL } from '../controller/mediaController.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
-import { mediaFile } from "../utils/commonFunctions.js";
+import { mediaFile } from "../utils/multerStorage.js";
 
 
 router.post('/admin/addMedia', mediaFile.fields([{ name: 'image' }]), validateAccessToken, authorizeRoles("admin"), addMedia); // admin

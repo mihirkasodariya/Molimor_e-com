@@ -3,7 +3,7 @@ const router = Router();
 import { addSingleProduct, getAllProductsList, getAllAdminProductsList, getProductById, updateSingleProduct, deleteProductById, inActiveProductById, searchProduct, downloadAddBulkProductTemplate, uploadBulkProductsFile } from '../controller/productController.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
-import { productImage, uploadExcelFile } from '../utils/commonFunctions.js';
+import { productImage, uploadExcelFile } from '../utils/multerStorage.js';
 
 router.post('/admin/addSingleProduct', productImage.fields([{ name: 'image' }]), validateAccessToken, authorizeRoles("admin"), addSingleProduct); // admin
 router.get('/getAllProductsList', validateAccessToken, getAllProductsList); // user

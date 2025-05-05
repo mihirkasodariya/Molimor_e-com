@@ -60,8 +60,21 @@ const authorizeRoles = (...allowedRoles) => {
     };
 };
 
+const languageMiddleware = (req, res, next) => {
+    let languageCode = req.query?.lang || 'en';
+    req.languageCode = languageCode;
+    next();
+};
+
+const setCurrency = (req, res, next) => {
+    req.currency = req.query?.currency?.toUpperCase() || 'INR';
+    next();
+};
+
 export default {
     generateJWToken,
     validateAccessToken,
-    authorizeRoles
+    authorizeRoles,
+    languageMiddleware,
+    setCurrency
 };

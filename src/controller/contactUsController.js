@@ -1,6 +1,8 @@
 import model from "../model/contactUsModel.js";
 const { contactModel, contactValidation, companyinfoModel, companyinfoValidation } = model;
 import response from "../utils/response.js";
+import constants from '../utils/constants.js';
+const { resStatusCode, resMessage } = constants;
 
 export async function addContactUs(req, res) {
   try {
@@ -8,7 +10,7 @@ export async function addContactUs(req, res) {
 
     const { error } = contactValidation.validate(req.body);
     if (error) {
-      return response.error(res, 400, error.details[0].message);
+      return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
 
     const contact = new contactModel({
@@ -21,58 +23,50 @@ export async function addContactUs(req, res) {
     });
     await contact.save();
 
-    return response.success(res, 200, 'Contact form submitted successfully', contact);
+    return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CONTACT_US_ADDED, contact);
   } catch (err) {
-    return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
-  }
-}
+    return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+  };
+};
 
 export async function getAllCustomerQuerysList(req, res) {
   try {
     const contacts = await contactModel.find().sort({ createdAt: -1 });
-    return response.success(res, 200, 'Customer queries fetched successfully.', contacts);
-
+    return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CUSTOMER_QUERIES_FETCHED, contacts);
   } catch (err) {
-    return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+    return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
   };
-}
+};
 
 
 export async function addCompanyinfo(req, res) {
   const { content, address, mobile, email } = req.body;
   const { error } = companyinfoValidation.validate(req.body);
   if (error) {
-    return response.error(res, 400, error.details[0].message);
-  }
-
+    return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
+  };
   try {
-
     const existing = await companyinfoModel.findOne();
-
 
     if (!existing) {
       const newCompany = await companyinfoModel.create(req.body);
-      return response.success(res, 200, "Company info created successfully", newCompany);
+      return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.COMPANY_INFO_ADDED, newCompany);
     } else {
       const updatedCompany = await companyinfoModel.findOneAndUpdate({}, req.body, { new: true });
 
-      return response.success(res, 200, "Company info updated successfully", updatedCompany);
-    }
+      return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.COMPANY_INFO_UPDATED, updatedCompany);
+    };
   } catch (err) {
-    return response.error(res, 500, "Oops! Something went wrong. Our team is looking into it.");
-  }
-}
+    return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+  };
+};
 
 export async function getCompanyinfo(req, res) {
   try {
     const companyInfo = await companyinfoModel.findOne();
 
-    if (!companyInfo) {
-      return response.success(res, 200, "No company info found");
-    }
-
-    return response.success(res, 200, "Company info retrieved successfully", companyInfo);
+    return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.COMPANY_INFO_RETRIEVED, companyInfo);
   } catch (err) {
-    return response.error(res, 500, "Oops! Something went wrong. Our team is looking into it.");
-  }
-}
+    return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+  };
+};

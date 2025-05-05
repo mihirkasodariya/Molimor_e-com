@@ -5,6 +5,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 const router = await import('./src/router/index.js');
 import connectDB from './dbconnect.js';
+import authMiddleware from './src/middeleware/auth.js';
 const dotenv = await import('dotenv');
 dotenv.config();
 
@@ -18,6 +19,10 @@ const app = express();
 app.use(cors());
 app.use(json());
 app.use(urlencoded({ extended: true }));
+
+app.use(authMiddleware.languageMiddleware);
+app.use(authMiddleware.setCurrency);
+
 app.use('/api', router.default);
 
 app.use(express.static(join(__dirname, 'public')));

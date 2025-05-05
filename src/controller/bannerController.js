@@ -1,28 +1,30 @@
 import model from '../model/bannerModel.js';
 const { bannerModel, bannerValidation, bannerIdValidation, bannerActiveValidation } = model;
 import response from '../utils/response.js';
+import constants from '../utils/constants.js';
+const { resStatusCode, resMessage } = constants;
 
 export async function addBanner(req, res) {
     const { error } = bannerValidation.validate({ image: req?.file?.filename });
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const addbanner = await bannerModel.create({
             image: req?.file.filename,
         });
-        return response.success(res, 200, 'Banner added successfully', addbanner);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.BANNER_ADDED, addbanner);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function getAllBanner(req, res) {
     try {
         const bannerList = await bannerModel.find({ isActive: true, isDelete: false }).sort({ createdAt: -1 });
         if (!bannerList) {
-            return response.error(res, 403, 'Banner List is empty', []);
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.BANNER_LIST_EMPTY, []);
         };
         const updatedBannerList = bannerList.map(banner => {
             return {
@@ -32,18 +34,18 @@ export async function getAllBanner(req, res) {
                     : `/banner/${banner.image}`
             };
         });
-        return response.success(res, 200, 'Banner List fetched successfully', updatedBannerList);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.BANNER_LIST_FETCHED, updatedBannerList);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function adminGetAllBanner(req, res) {
     try {
         const bannerList = await bannerModel.find({ isDelete: false }).sort({ createdAt: -1 });
         if (!bannerList) {
-            return response.error(res, 403, 'Banner List is empty', []);
+            return response.error(res, resStatusCode.FORBIDDEN, resMessage.BANNER_LIST_EMPTY, []);
         };
         const updatedBannerList = bannerList.map(banner => {
             return {
@@ -53,28 +55,28 @@ export async function adminGetAllBanner(req, res) {
                     : `/banner/${banner.image}`
             };
         });
-        return response.success(res, 200, 'Banner List fetched successfully', updatedBannerList);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.BANNER_LIST_FETCHED, updatedBannerList);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function deleteBannerById(req, res) {
     const bannerId = req.params.id;
     const { error } = bannerIdValidation.validate(req.params);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const deleteBanner = await bannerModel.findByIdAndUpdate(bannerId, { isDelete: true, isActive: false }, { new: true });
 
-        return response.success(res, 200, 'Banner deleted successfully', deleteBanner);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.BANNER_DELETED, deleteBanner);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function inActiveBannerById(req, res) {
     const bannerId = req.params.id;
@@ -82,13 +84,13 @@ export async function inActiveBannerById(req, res) {
     req.body.id = bannerId;
     let { error } = bannerActiveValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const inActiveBanner = await bannerModel.findByIdAndUpdate(bannerId, { isActive }, { new: true });
-        return response.success(res, 200, 'Banner inactivated successfully', inActiveBanner);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.BANNER_INACTIVATED, inActiveBanner);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};

@@ -1,19 +1,24 @@
+import multiLanguageService from './multiLanguageService.js'
+const { getResponseMessage } = multiLanguageService;
+
 export default class response {
-    static success = (res, status, message, data) => {
-        return res.status(status || 200).json({
+    static success = (res, languageCode, status, message, data) => {
+        const response = {
             success: true,
-            status: status || 200,
-            message: message || 'success',
-            data: data || {},
-        });
+            status: status,
+            message: getResponseMessage(languageCode, message) || message || 'success',
+            data: data || {}
+        }
+        return res.status(status || 200).json(response);
     };
 
-    static error = (res, status, message, data) => {
-        return res.status(status || 200).json({
+    static error = (res, languageCode, status, message, data) => {
+        const response = {
             success: false,
             status: status || 403,
-            message: message || 'error',
-            data: data || {},
-        });
+            message: getResponseMessage(languageCode, message) || message || 'error',
+            data: data || {}
+        }
+        return res.status(status || 200).json(response);
     };
 };

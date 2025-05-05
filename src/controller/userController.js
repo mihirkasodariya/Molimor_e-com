@@ -4,18 +4,20 @@ import auth from "../middeleware/auth.js";
 const { generateJWToken } = auth;
 import response from '../utils/response.js';
 import { hash, compare } from 'bcrypt';
-import axios from 'axios';
+// import axios from 'axios';
+import constants from '../utils/constants.js';
+const { resStatusCode, resMessage } = constants;
 
 export async function register(req, res) {
     const { fname, lname, email, mobile, password, gender, profilePhoto } = req.body;
     const { error } = userRegisterValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const userExists = await userModel.findOne({ email });
         if (userExists?.email) {
-            return response.error(res, 409, 'User Alredy Register', {});
+            return response.error(res, req?.languageCode, resStatusCode.CONFLICT, resMessage.USER_FOUND, {});
         };
         const hashedPassword = await hash(password, 10);
         const createNewUser = new userModel({
@@ -25,10 +27,10 @@ export async function register(req, res) {
         });
         await createNewUser.save();
         const token = await generateJWToken({ _id: createNewUser._id });
-        return response.success(res, 200, 'User Register Successfully', { _id: createNewUser._id, token: token });
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_REGISTER, { _id: createNewUser._id, token: token });
     } catch (error) {
         console.error(error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };
 
@@ -36,23 +38,22 @@ export async function login(req, res) {
     const { email, password } = req.body;
     const { error } = userLoginValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
         const user = await userModel.findOne({ email, isActive: true });
         if (!user) {
-            return response.error(res, 403, 'Account not found. Please check the email entered.');
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.USER_ACCOUNT_NOT_FOUND, {});
         };
         const validPassword = await compare(password, user.password);
         if (!validPassword) {
-            return response.error(res, 401, 'Incorrect password. Please try again.');
+            return response.error(res, req.languageCode, resStatusCode.UNAUTHORISED, resMessage.USER_ACCOUNT_NOT_FOUND, {});
         };
         const token = await generateJWToken({ id: user._id });
-        return response.success(res, 200, 'You have successfully logged in', { _id: user._id, token: token });
-
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.LOGIN_SUCCESS, { _id: user._id, token: token });
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };
 
@@ -60,18 +61,18 @@ export async function profile(req, res) {
     try {
         const user = await userModel.findById({ _id: req.user.id }).select('-password');
         if (!user) {
-            return response.error(res, 403, 'User not found.');
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.USER_NOT_FOUND, {});
         };
         const updatedUser = {
             ...user._doc,
             profilePhoto: user?.profilePhoto ? `/userProfile/${user?.profilePhoto}` : null
         };
-        return response.success(res, 200, 'Retrieve user profile successful', updatedUser);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.RETRIEVE_PROFILE_SUCCESS, updatedUser);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function updateProfile(req, res) {
     try {
@@ -89,22 +90,22 @@ export async function updateProfile(req, res) {
             },
             { new: true, runValidators: true }
         );
-        return response.success(res, 200, 'User profile updated successfully.', updatedUser);
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_PROFILE_UPDATED, updatedUser);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function getGoogleOAuthUrl(req, res) {
     try {
         const redirectUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URL}&scope=openid%20email%20profile`;
-        return response.success(res, 200, 'Google OAuth URL generated successfully. Please proceed with the login process', { url: redirectUrl });
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.GOOGLE_OAUTH_URL_GENERATED, { url: redirectUrl });
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function googleOAuthLogin(req, res) {
 
@@ -112,7 +113,7 @@ export async function googleOAuthLogin(req, res) {
 
     const { error } = googleOAuthValidation.validate(req.body);
     if (error) {
-        return response.error(res, 400, error.details[0].message);
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     const decodedCode = decodeURIComponent(code);
     try {
@@ -142,26 +143,26 @@ export async function googleOAuthLogin(req, res) {
             await createNewUser.save();
         };
         let token = await generateJWToken({ id: createNewUser._id });
-        return response.success(res, 200, 'Google authentication successful.', { _id: createNewUser._id, token: token });
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.GOOGLE_AUTH_SUCCESS, { _id: createNewUser._id, token: token });
     } catch (error) {
         if (error.response?.data?.error === 'invalid_grant' || error.response?.data?.error_description === 'Bad Request') {
-            return response.error(res, 403, 'Authorization code expired. Please try again.', {});
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.AUTHORIZATION_CODE_EXPIRED, {});
         };
         console.error('Google signup error:', error.response?.data?.error);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 
 export async function getFacebookOAuthUrl(req, res) {
     try {
         const redirectUrl = `https://www.facebook.com/v13.0/dialog/oauth?client_id=${process.env.FACEBOOK_APP_ID}&redirect_uri=${process.env.FACEBOOK_REDIRECT_URI}&scope=email`;
-        return response.success(res, 200, 'Facebook OAuth URL generated successfully. Please proceed with the login process', { url: redirectUrl });
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, 'Facebook OAuth URL generated successfully. Please proceed with the login process', { url: redirectUrl });
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function facebookOAuthLogin(req, res) {
     const { code } = req.query;
@@ -187,26 +188,7 @@ export async function facebookOAuthLogin(req, res) {
         console.error("Facebook Authentication Error:", error);
         res.status(500).send('Authentication failed.');
     };
-}
-
-// export async function getAllUsers(req, res) {
-//     try {
-//         const users = await userModel.find({role : "user"}).select('-password', 'profilePhoto');
-
-//         if (!users || users.length === 0) {
-//             return response.error(res, 403, 'No users found.');
-//         };
-//         // const updatedUsers = users.map(user => ({
-//         //     ...user._doc,
-//         //     profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
-//         // }));
-
-//         return response.success(res, 200, 'Users fetched successfully', users);
-//     } catch (err) {
-//         console.error(err);
-//         return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
-//     };
-// }
+};
 
 
 export async function getUserById(req, res) {
@@ -215,18 +197,18 @@ export async function getUserById(req, res) {
     try {
         const user = await userModel.findById(id).select('-password');
         if (!user) {
-            return response.error(res, 403, 'No user found.');
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.USER_NOT_FOUND, {});
         };
         const updatedUser = {
             ...user._doc,
             profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
         };
-        return response.success(res, 200, 'User fetched successfully', updatedUser);
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USERS_FETCHED, updatedUser);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function updateUserById(req, res) {
     const id = req.params.id;
@@ -235,30 +217,30 @@ export async function updateUserById(req, res) {
         const updatedUser = await userModel.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).select('-password');
 
         if (!updatedUser) {
-            return response.error(res, 404, 'User not found.');
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.USER_NOT_FOUND, {});
         };
-        return response.success(res, 200, 'User updated successfully', {
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_PROFILE_UPDATED, {
             ...updatedUser._doc,
             profilePhoto: updatedUser.profilePhoto ? `/userProfile/${updatedUser.profilePhoto}` : null
         });
-
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
 
 export async function inActiveUserById(req, res) {
     const id = req.params.id;
     const isActive = req.body.isActive;
     try {
         const inActiveUser = await userModel.findByIdAndUpdate(id, { isActive: isActive }, { new: true, runValidators: true }).select('-password');
-        return response.success(res, 200, 'User fetched successfully', inActiveUser);
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_INACTIVE, inActiveUser);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
+};
+
 
 
 export async function getAllUsers(req, res) {
@@ -266,17 +248,11 @@ export async function getAllUsers(req, res) {
         const users = await userModel.find({ role: "user" }).select('-password');
 
         if (!users || users.length === 0) {
-            return response.error(res, 403, 'No users found.');
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.USER_NOT_FOUND, {});
         };
-        // const updatedUsers = users.map(user => ({
-        //     ...user._doc,
-        //     profilePhoto: user.profilePhoto ? `/userProfile/${user.profilePhoto}` : null
-        // }));
-
-        return response.success(res, 200, 'Users fetched successfully', users);
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USERS_FETCHED, users);
     } catch (err) {
         console.error(err);
-        return response.error(res, 500, 'Oops! Something went wrong. Our team is looking into it.', {});
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
-}
-
+};

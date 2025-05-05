@@ -3,7 +3,7 @@ const router = Router();
 import { addCertificate, getAllCertificate, adminGetAllCertificate, deleteCertificateById, inActiveCertificateById } from '../controller/certificateController.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
-import { certificateImage } from "../utils/commonFunctions.js";
+import { certificateImage } from "../utils/multerStorage.js";
 
 
 router.post('/addCertificate', certificateImage.single('image'), validateAccessToken, authorizeRoles("admin"), addCertificate); // admin

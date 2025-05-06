@@ -114,7 +114,7 @@ export async function getProductById(req, res) {
             ...product._doc,
             price: parseFloat(convertedPrice),
             mrp: parseFloat(convertedMRP),
-            currency: currency,
+            currency: req.currency,
             image: Array.isArray(product.image) ? product?.image.map(img => `/productImages/${img}`) : []
         };
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, updatedProduct);

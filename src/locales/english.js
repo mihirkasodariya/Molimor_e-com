@@ -76,6 +76,9 @@ const resMsg = {
     ABOUT_US_CREATED: 'About Us added successfully.',
     ABOUT_US_UPDATED: 'About Us updated successfully.',
     ABOUT_US_RETRIEVED: 'About Us retrieved successfully.',
+    REVIEW_NOT_FOUND: 'No reviews found for this product.',
+    REVIEW_LIST_FETCHED: 'Reviews retrieved successfully.',
+
 };
 
 export default {

@@ -4,7 +4,7 @@ import auth from "../middeleware/auth.js";
 const { generateJWToken } = auth;
 import response from '../utils/response.js';
 import { hash, compare } from 'bcrypt';
-// import axios from 'axios';
+import axios from 'axios';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
 
@@ -165,31 +165,45 @@ export async function getFacebookOAuthUrl(req, res) {
 };
 
 export async function facebookOAuthLogin(req, res) {
-    const { code } = req.query;
-    try {
-        const tokenResponse = await axios.get('https://graph.facebook.com/v13.0/oauth/access_token', {
-            params: {
-                client_id: FACEBOOK_APP_ID,
-                client_secret: FACEBOOK_APP_SECRET,
-                code: code,
-                redirect_uri: FACEBOOK_REDIRECT_URI
-            }
-        });
-        const { access_token } = tokenResponse.data;
-        const userResponse = await axios.get('https://graph.facebook.com/v13.0/me', {
-            params: {
-                access_token: access_token,
-                fields: 'id,name,email'
-            }
-        });
-        const userData = userResponse.data;
-        res.send(`Hello ${userData.name}!`);
-    } catch (error) {
-        console.error("Facebook Authentication Error:", error);
-        res.status(500).send('Authentication failed.');
-    };
-};
+    // try {
+    const code = req.body.code;
 
+    if (!code) {
+        return res.status(400).json({ error: 'Missing authorization code.' });
+    };
+
+    console.log('Received code:', code);
+    console.log('Client ID:', process.env.FACEBOOK_APP_ID);
+    console.log('Redirect URI:', process.env.FACEBOOK_REDIRECT_URI);
+    console.log('FACEBOOK_APP_SECRET URI:', process.env.FACEBOOK_APP_SECRET);
+
+    const tokenResponse = await axios.get('https://graph.facebook.com/v22.0/oauth/access_token?', {
+        params: {
+            client_id: process.env.FACEBOOK_APP_ID,
+            redirect_uri: process.env.FACEBOOK_REDIRECT_URI,
+            client_secret: process.env.FACEBOOK_APP_SECRET,
+            code: code,
+        },
+    });
+
+    const { access_token } = tokenResponse.data;
+    console.log('Access Token:', access_token);
+
+    const userResponse = await axios.get('https://graph.facebook.com/me', {
+        params: {
+            access_token
+        },
+    });
+
+    const userData = userResponse.data;
+    console.log('User Data:', userData);
+
+    return res.status(200).json({
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+    });
+};
 
 export async function getUserById(req, res) {
     const id = req.params.id;
@@ -240,7 +254,6 @@ export async function inActiveUserById(req, res) {
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };
-
 
 
 export async function getAllUsers(req, res) {

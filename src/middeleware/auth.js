@@ -56,7 +56,7 @@ const authorizeRoles = (...allowedRoles) => {
             next();
         };
     } catch (error) {
-        return (error)
+        return (error);
     };
 };
 

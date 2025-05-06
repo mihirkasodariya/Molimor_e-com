@@ -53,3 +53,31 @@ export async function inActiveReview(req, res) {
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };
+
+export async function getAllReviewByProductId(req, res) {
+    let productId = req.params.id;
+    try {
+        const reviewList = await reviewModel.find({ productId, isActive: true });
+        if (reviewList === 0) {
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.REVIEW_NOT_FOUND, {});
+        };
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.REVIEW_LIST_FETCHED, reviewList);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+export async function adminGetAllReviewByProductId(req, res) {
+    let productId = req.params.id;
+    try {
+        const reviewList = await reviewModel.find({ productId });
+        if (reviewList === 0) {
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.REVIEW_NOT_FOUND, {});
+        };
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.REVIEW_LIST_FETCHED, reviewList);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};

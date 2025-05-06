@@ -3,6 +3,8 @@ const { orderModel, orderValidation, getOrderValidation } = model;
 import response from '../utils/response.js';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
+import currency from '../utils/currency.js'
+const { convertPrice } = currency;
 
 export async function placeOrder(req, res) {
     const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCharge, mobile, email, orderNote } = req.body;
@@ -54,7 +56,11 @@ export async function getAllUserOrders(req, res) {
         if (!orders || orders?.length === 0) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
-        const updatedOrders = orders.map(order => {
+
+        const updatedOrders = await Promise.all(orders.map(async (order) => {
+            const convertedPrice = await convertPrice(order.price, req.currency);
+            const convertedMRP = await convertPrice(order.mrp, req.currency);
+
             const updatedItems = order.items.map(item => {
                 if (item.productId && Array.isArray(item.productId.image)) {
                     item.productId.image = item.productId.image.map(img =>
@@ -63,8 +69,14 @@ export async function getAllUserOrders(req, res) {
                 }
                 return item;
             });
-            return { ...order._doc, items: updatedItems };
-        });
+
+            return {
+                ...order,
+                price: convertedPrice,
+                mrp: convertedMRP,
+                items: updatedItems,
+            };
+        }));
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, updatedOrders);
     } catch (error) {
         console.error(error);
@@ -83,6 +95,10 @@ export async function getOrderById(req, res) {
         if (!order) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
+        const [convertedPrice, convertedMRP] = await Promise.all([
+            convertPrice(order.price, req.currency),
+            convertPrice(order.mrp, req.currency)
+        ]);
         const updatedItems = order.items.map(item => {
             if (item.productId && Array.isArray(item.productId.image)) {
                 item.productId.image = item.productId.image.map(img =>
@@ -93,8 +109,12 @@ export async function getOrderById(req, res) {
             }
             return item;
         });
-        const updatedOrder = { ...order._doc, items: updatedItems };
-
+        const updatedOrder = {
+            ...order,
+            price: convertedPrice,
+            mrp: convertedMRP,
+            items: updatedItems
+        };
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, updatedOrder);
     } catch (error) {
         console.error(error);
@@ -106,6 +126,7 @@ export async function getOrderById(req, res) {
 export async function getAllOrders(req, res) {
     try {
         const { status, customerId, startDate, endDate, page = 1, limit = 10 } = req.query;
+
         const filter = {};
         if (status) filter.status = status;
         if (customerId) filter.customerId = customerId;
@@ -113,36 +134,47 @@ export async function getAllOrders(req, res) {
             filter.createdAt = {};
             if (startDate) filter.createdAt.$gte = new Date(startDate);
             if (endDate) filter.createdAt.$lte = new Date(endDate);
-        };
+        }
+
         const skip = (parseInt(page) - 1) * parseInt(limit);
         const totalOrders = await orderModel.countDocuments(filter);
 
-        let orders = await orderModel
+        const orders = await orderModel
             .find(filter)
             .populate("items.productId")
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(parseInt(limit));
+            .limit(parseInt(limit))
+            .lean();
 
         if (!orders || orders.length === 0) {
-            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
-        };
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
+        }
 
-        const updatedOrders = orders.map(order => {
+        const updatedOrders = await Promise.all(orders.map(async (order) => {
+            const convertedPrice = await convertPrice(order.price, req.currency);
+            const convertedMRP = await convertPrice(order.mrp, req.currency);
+
             const updatedItems = order.items.map(item => {
                 if (item.productId && Array.isArray(item.productId.image)) {
                     item.productId.image = item.productId.image.map(img =>
                         img.startsWith("/productImages/") ? img : `/productImages/${img}`
                     );
-                };
+                }
                 return item;
             });
-            return { ...order._doc, items: updatedItems };
-        });
+
+            return {
+                ...order,
+                price: convertedPrice,
+                mrp: convertedMRP,
+                items: updatedItems,
+            };
+        }));
 
         const totalPages = Math.ceil(totalOrders / parseInt(limit));
 
-        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, {
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, {
             orders: updatedOrders,
             page: parseInt(page),
             limit: parseInt(limit),
@@ -152,9 +184,10 @@ export async function getAllOrders(req, res) {
 
     } catch (error) {
         console.error(error);
-        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
-    };
+        return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    }
 };
+
 
 export async function updateOrderStatusByAdmin(req, res) {
 

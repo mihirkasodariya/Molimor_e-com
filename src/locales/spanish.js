@@ -78,6 +78,8 @@ const resMsg = {
     ABOUT_US_CREATED: 'Se agregó Acerca de nosotros con éxito.',
     ABOUT_US_UPDATED: 'Acerca de nosotros actualizado con éxito.',
     ABOUT_US_RETRIEVED: 'Acerca de nosotros recuperado con éxito.',
+    REVIEW_LIST_FETCHED: 'Reseñas recuperadas con éxito.',
+    INTERNAL_SERVER_ERROR: '¡Vaya! Algo salió mal de nuestro lado.',
 };
 
 export default {

@@ -121,6 +121,29 @@ const socialAccountValidation = Joi.object({
 });
 
 
+const marketPlaceSchema = new Schema({
+  image: { type: String, required: true },
+  link: { type: String, required: true },
+  isDelete: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
+}, { timestamps: true });
+
+const marketPlaceModel = model('market_place', marketPlaceSchema);
+
+
+const marketPlaceValidation = Joi.object({
+  image: Joi.string().required().messages({
+    'string.base': 'Image must be a string',
+    'any.required': 'Image is required'
+  }),
+  link: Joi.string().optional().messages({
+    'string.base': 'Link must be a string'
+  }),
+  isDelete: Joi.boolean().default(false),
+  isActive: Joi.boolean().default(true)
+});
+
+
 export default {
   mediaModel,
   mediaValidation,
@@ -130,4 +153,7 @@ export default {
 
   socialAccountModel,
   socialAccountValidation,
+
+  marketPlaceModel,
+  marketPlaceValidation
 };

@@ -9,7 +9,7 @@ router.get("/admin/getContactUs", validateAccessToken, authorizeRoles('admin'), 
 
 
 router.post("/admin/addCompanyinfo", validateAccessToken, authorizeRoles('admin'), addCompanyinfo); // admin
-router.get("/getCompanyinfo", validateAccessToken, getCompanyinfo); // user
+router.get("/getCompanyinfo", getCompanyinfo); // user
 
 
 export default router;

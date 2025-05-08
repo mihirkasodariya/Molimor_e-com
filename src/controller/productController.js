@@ -11,13 +11,17 @@ import path from 'path';
 import fs from 'fs';
 
 export async function addSingleProduct(req, res) {
-    const { title, shortDescription, isFeatured, weight, price, mrp, description, benefits, subCategoryId, image, sku, stock, quantity, isActive } = req.body;
-
+    const { title, isFeatured, weight, price, mrp, isSale, salePrice, description, benefits, categoryId, image, sku, stock, quantity, isActive } = req.body;
     let isFeaturedConvertArry = [];
+    let weightArry = [];
     if (isFeatured && typeof isFeatured === 'string') {
         isFeaturedConvertArry = isFeatured.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
     };
+    if (weight && typeof weight === 'string') {
+        weightArry = weight.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
+    };
     req.body.isFeatured = isFeaturedConvertArry;
+    req.body.weight = weightArry;
 
     const { error } = productValidation.validate(req.body);
     if (error) {
@@ -101,7 +105,7 @@ export async function getProductById(req, res) {
     const { id } = req.params;
 
     try {
-        const product = await productModel.findById(id).populate("subCategoryId");
+        const product = await productModel.findById(id).populate("categoryId");
         if (!product) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_PRODUCTS_FOUND, {});
         };
@@ -128,6 +132,7 @@ export async function updateSingleProduct(req, res) {
     const { id } = req.params;
 
     let isFeaturedConvertArry = [];
+    let weightArry = [];
     if (req.body.isFeatured && typeof req.body.isFeatured === 'string') {
         isFeaturedConvertArry = req.body.isFeatured
             .replace(/[\[\]\s]+/g, '')
@@ -135,6 +140,12 @@ export async function updateSingleProduct(req, res) {
             .map(item => item.trim());
         req.body.isFeatured = isFeaturedConvertArry;
     };
+    console.log('req.body?.weight', req.body?.weight)
+    if (req.body?.weight && typeof req.body?.weight === 'string') {
+        weightArry = req.body?.weight.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
+    };
+    req.body.weight = weightArry;
+
     const { error } = updateProductValidation.validate(req.body);
     if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
@@ -230,7 +241,6 @@ export async function searchProduct(req, res) {
 };
 
 export async function downloadAddBulkProductTemplate(req, res) {
-    const { subCategoryId } = req.body;
 
     try {
         const data = [
@@ -248,7 +258,7 @@ export async function downloadAddBulkProductTemplate(req, res) {
                 mrp: 0,
                 description: "",
                 benefits: "",
-                subCategoryId: subCategoryId,
+                categoryId: "",
                 image1: "",
                 image2: "",
                 image3: "",

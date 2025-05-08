@@ -1,5 +1,5 @@
 import model from '../model/mediaModel.js';
-const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation } = model;
+const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation, marketPlaceModel, marketPlaceValidation } = model;
 import response from '../utils/response.js';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
@@ -146,6 +146,46 @@ export async function getSocialAccountURL(req, res) {
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.SOCIAL_LINKS_RETRIEVED, link);
     } catch (err) {
         console.error("Error fetching social links:", err);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+
+export async function addMarketPlace(req, res) {
+    const { error } = marketPlaceValidation.validate({ image: req?.file?.filename, link: req.body.link });
+    if (error) {
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
+    };
+    console.log(req.body)
+    try {
+        const addOtherStore = await marketPlaceModel.create({
+            image: req?.file.filename,
+            link: req.body.link
+        });
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ADD_OTHER_STORE, addOtherStore);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+export async function getMarketPlace(req, res) {
+    try {
+        const bannerList = await marketPlaceModel.find({ isActive: true, isDelete: false }).sort({ createdAt: -1 });
+        if (!bannerList) {
+            return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.MARKET_PLACE_LIST_EMPTY, []);
+        };
+        const updatedBannerList = bannerList.map(banner => {
+            return {
+                ...banner._doc,
+                image: banner.image.startsWith("/marketPlace/")
+                    ? banner.image
+                    : `/marketPlace/${banner.image}`
+            };
+        });
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MARKET_PLACE_LIST_FETCHED, updatedBannerList);
+    } catch (err) {
+        console.error(err);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };

@@ -6,15 +6,15 @@ const { validateAccessToken, authorizeRoles } = auth;
 import { productImage, uploadExcelFile } from '../utils/multerStorage.js';
 
 router.post('/admin/addSingleProduct', productImage.fields([{ name: 'image' }]), validateAccessToken, authorizeRoles("admin"), addSingleProduct); // admin
-router.get('/getAllProductsList', validateAccessToken, getAllProductsList); // user
+router.get('/getAllProductsList', getAllProductsList); // user
 router.get('/admin/getAllProductsList', validateAccessToken, getAllAdminProductsList); // admin
-router.get('/getProduct/:id', validateAccessToken, getProductById);  // both
+router.get('/getProduct/:id', getProductById);  // both
 router.put('/admin/updateProduct/:id', productImage.fields([{ name: 'image' }]), validateAccessToken, authorizeRoles("admin"), updateSingleProduct); // admin
 router.delete('/admin/deleteProduct/:id', validateAccessToken, authorizeRoles("admin"), deleteProductById); // admin
 router.put('/admin/inActiveProduct/:id', validateAccessToken, authorizeRoles("admin"), inActiveProductById); // admin
 
 
-router.get('/searchProduct/:searchProduct', validateAccessToken, searchProduct); // user 
+router.get('/searchProduct/:searchProduct', searchProduct); // user 
 router.get('/downloadAddBulkProductTemplate', validateAccessToken, authorizeRoles("admin"), downloadAddBulkProductTemplate); // admin
 router.get('/uploadBulkProductsFile', [uploadExcelFile.single('file'),], validateAccessToken, authorizeRoles("admin"), uploadBulkProductsFile); // admin
 

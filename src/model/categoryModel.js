@@ -4,6 +4,8 @@ const { Schema } = mongoose;
 
 const categorySchema = new Schema({
   name: { type: String, required: true },
+  categoryId: { type: Number, required: true },
+  image: { type: String },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
@@ -16,6 +18,9 @@ const categoryValidation = Joi.object({
     'string.min': 'Category Name must be at least 3 characters long.',
     'string.max': 'Category Name cannot be longer than 100 characters.',
     'any.required': 'Category Name is required.'
+  }),
+  image: Joi.string().optional().messages({
+    'string.base': 'Image must be a valid string (filename or path).'
   }),
   isActive: Joi.boolean().valid(true, false).default(true).messages({
     'boolean.base': 'isActive must be either true or false.',

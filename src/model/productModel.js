@@ -4,14 +4,15 @@ const { Schema } = mongoose;
 
 const productSchema = new Schema({
     title: { type: String, required: true },
-    shortDescription: { type: String },
     isFeatured: { type: [String], required: true },
-    weight: { type: String, required: true },
+    weight: { type: [String], required: true },
     price: { type: Number, required: true },
     mrp: { type: Number, required: true },
+    salePrice: { type: Number },
+    isSale: { type: Boolean, default: false },
     description: { type: String, required: true },
     benefits: { type: String, required: true },
-    subCategoryId: { type: _Schema.Types.ObjectId, ref: 'sub_categorys' },
+    categoryId: { type: _Schema.Types.ObjectId, ref: 'categorys' },
     image: [{ type: String }],
     sku: { type: String, required: true, unique: true },
     stock: { type: Number, default: 0 },
@@ -31,10 +32,6 @@ const productValidation = Joi.object({
         'string.max': 'Title cannot exceed 100 characters',
         'any.required': 'Title is required'
     }),
-    shortDescription: Joi.string().allow('', null).max(400).messages({
-        'string.base': 'Short description must be a string',
-        'string.max': 'Short description cannot exceed 300 characters',
-    }),
     isFeatured: Joi.array()
         .items(Joi.string().required())
         .max(6)
@@ -46,12 +43,19 @@ const productValidation = Joi.object({
             'string.empty': 'Each value in Is Featured must be a non-empty string',
             'string.base': 'Each value in Is Featured must be a string',
         }),
-
-    weight: Joi.string().required().messages({
-        'string.base': 'Weight must be a string',
-        'string.empty': 'Weight is required',
-        'any.required': 'Weight is required',
-    }),
+    weight: Joi.array()
+        .items(
+            Joi.string().required().messages({
+                'string.base': 'Each weight must be a string',
+                'any.required': 'Each weight is required',
+            })
+        )
+        .required()
+        .messages({
+            'array.base': 'Weight must be an array of string',
+            'array.includesRequiredUnknowns': 'Weight array must include at least one string',
+            'any.required': 'Weight is required',
+        }),
     price: Joi.number().positive().required().messages({
         'number.base': 'Price must be a number',
         'number.positive': 'Price must be greater than 0',
@@ -61,6 +65,12 @@ const productValidation = Joi.object({
         'number.base': 'MRP must be a number',
         'number.positive': 'MRP must be greater than 0',
         'any.required': 'MRP is required',
+    }),
+    salePrice: Joi.number().optional().messages({
+        'number.base': 'Sale price must be a number',
+    }),
+    isSale: Joi.boolean().valid(true, false).default(false).messages({
+        'boolean.base': 'isSale must be true or false',
     }),
     description: Joi.string().required().messages({
         'string.base': 'Description must be a string',
@@ -72,10 +82,10 @@ const productValidation = Joi.object({
         'string.empty': 'Benefits is required',
         'any.required': 'Benefits is required',
     }),
-    subCategoryId: Joi.string().required().messages({
-        'string.base': 'Subcategory ID must be a string',
-        'string.empty': 'Subcategory ID is required',
-        'any.required': 'Subcategory ID is required',
+    categoryId: Joi.string().required().messages({
+        'string.base': 'Category ID must be a string',
+        'string.empty': 'Category ID is required',
+        'any.required': 'Category ID is required',
     }),
     image: Joi.array()
         .items(Joi.string().pattern(/^[\w,\s-]+\.(jpg|jpeg|png|gif|webp)$/i).required().messages({
@@ -118,10 +128,6 @@ const updateProductValidation = Joi.object({
         'string.max': 'Title cannot exceed 100 characters',
         'any.required': 'Title is required'
     }),
-    shortDescription: Joi.string().allow('', null).max(400).messages({
-        'string.base': 'Short description must be a string',
-        'string.max': 'Short description cannot exceed 300 characters',
-    }),
     isFeatured: Joi.array()
         .items(Joi.string().required())
         .max(6)
@@ -133,12 +139,19 @@ const updateProductValidation = Joi.object({
             'string.empty': 'Each value in Is Featured must be a non-empty string',
             'string.base': 'Each value in Is Featured must be a string',
         }),
-
-    weight: Joi.string().required().messages({
-        'string.base': 'Weight must be a string',
-        'string.empty': 'Weight is required',
-        'any.required': 'Weight is required',
-    }),
+    weight: Joi.array()
+        .items(
+            Joi.string().required().messages({
+                'string.base': 'Each weight must be a string',
+                'any.required': 'Each weight is required',
+            })
+        )
+        .required()
+        .messages({
+            'array.base': 'Weight must be an array of string',
+            'array.includesRequiredUnknowns': 'Weight array must include at least one string',
+            'any.required': 'Weight is required',
+        }),
     price: Joi.number().positive().required().messages({
         'number.base': 'Price must be a number',
         'number.positive': 'Price must be greater than 0',
@@ -158,6 +171,12 @@ const updateProductValidation = Joi.object({
         'string.base': 'Benefits must be a string',
         'string.empty': 'Benefits is required',
         'any.required': 'Benefits is required',
+    }),
+    salePrice: Joi.number().optional().messages({
+        'number.base': 'Sale price must be a number',
+    }),
+    isSale: Joi.boolean().valid(true, false).default(false).messages({
+        'boolean.base': 'isSale must be true or false',
     }),
     image: Joi.array()
         .items(Joi.string().pattern(/^[\w,\s-]+\.(jpg|jpeg|png|gif|webp)$/i).required().messages({
@@ -205,7 +224,7 @@ const productFileSchema = Joi.object({
     sku: Joi.string().required(),
     stock: Joi.number().optional(),
     quantity: Joi.number().optional(),
-    subCategoryId: Joi.string().required(),
+    categoryId: Joi.string().required(),
     isActive: Joi.boolean().truthy(true).falsy(false).optional(),
     isFeatured1: Joi.string().optional(),
     isFeatured2: Joi.string().optional(),

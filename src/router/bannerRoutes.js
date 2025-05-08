@@ -7,7 +7,7 @@ import { bannerImage } from "../utils/multerStorage.js";
 
 
 router.post('/addBanner', bannerImage.single('image'), validateAccessToken, authorizeRoles("admin"), addBanner); // admin
-router.get('/getAllBanner', validateAccessToken, getAllBanner);  // user
+router.get('/getAllBanner', getAllBanner);  // user
 
 router.get('/admin/adminGetAllBanner', validateAccessToken, authorizeRoles("admin"), adminGetAllBanner);  // admin
 router.delete('/deleteBannerById/:id', validateAccessToken, authorizeRoles("admin"), deleteBannerById); // admin

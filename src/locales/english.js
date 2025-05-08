@@ -78,7 +78,15 @@ const resMsg = {
     ABOUT_US_RETRIEVED: 'About Us retrieved successfully.',
     REVIEW_NOT_FOUND: 'No reviews found for this product.',
     REVIEW_LIST_FETCHED: 'Reviews retrieved successfully.',
-
+    ADD_OTHER_STORE: 'Other store added successfully.',
+    MARKET_PLACE_LIST_EMPTY: 'No marketplace found',
+    MARKET_PLACE_LIST_FETCHED: 'Marketplace list fetched successfully.',
+    COUPON_CODE_EXISTS: 'Coupon code already exists',
+    COUPON_CREATED: 'Coupon created successfully',
+    COUPON_FETCHED: 'Coupon fetched successfully',
+    COUPON_NOT_FOUND: 'Coupon not found',
+    COUPON_UPDATED: 'Coupon updated successfully',
+    COUPON_DELETED: 'Coupon Deleted successfully'
 };
 
 export default {

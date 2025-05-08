@@ -5,16 +5,26 @@ import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
 
 export async function addCategory(req, res) {
-    const { name } = req.body;
-    const { error } = categoryValidation.validate(req.body);
-    if (error) {
-        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
-    };
     try {
-        const newCategory = new categoryModel({ name });
+        const { name } = req.body;
+        const image = req?.file?.filename || '';
+        req.body.image = image;
+        const { error } = categoryValidation.validate(req.body);
+        if (error) {
+            return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
+        };
+        const lastCategory = await categoryModel.findOne().sort({ categoryId: -1 });
+        const newCategoryId = typeof lastCategory?.categoryId === 'number' ? lastCategory.categoryId + 1 : 101;
+
+        const newCategory = new categoryModel({
+            name,
+            image,
+            categoryId: newCategoryId
+        });
         await newCategory.save();
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CATEGORY_ADDED, newCategory);
     } catch (error) {
+        console.error(error);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };
@@ -22,16 +32,27 @@ export async function addCategory(req, res) {
 export async function getActiveCategoryList(req, res) {
     try {
         const categories = await categoryModel.find({ isActive: true }).sort({ createdAt: -1 });
-        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CATEGORIES_FETCHED, categories);
+
+        const updatedCategories = categories.map(category => ({
+            ...category._doc,
+            image: `/category/${category.image}`
+        }));
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CATEGORIES_FETCHED, updatedCategories);
     } catch (error) {
+        console.error(error);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };
 
+
 export async function getCategoryList(req, res) {
     try {
         const categories = await categoryModel.find({}).sort({ createdAt: -1 });
-        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CATEGORIES_FETCHED, categories);
+        const updatedCategories = categories.map(category => ({
+            ...category._doc,
+            image: `/category/${category.image}`
+        }));
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CATEGORIES_FETCHED, updatedCategories);
     } catch (error) {
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };

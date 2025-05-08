@@ -89,3 +89,27 @@ const mediaStorage = diskStorage({
 });
 
 export const mediaFile = multer({ storage: mediaStorage });
+
+const marketPlaceStorage = diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './public/otherStore';
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-marketPlace-" + file.originalname);
+    },
+});
+
+export const marketPlacePhotos = multer({ storage: marketPlaceStorage });
+
+const categoryStorage = diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './public/category';
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-categoryImage-" + file.originalname);
+    },
+});
+
+export const categoryImage = multer({ storage: categoryStorage });

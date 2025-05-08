@@ -80,6 +80,16 @@ const resMsg = {
     ABOUT_US_RETRIEVED: 'Acerca de nosotros recuperado con éxito.',
     REVIEW_LIST_FETCHED: 'Reseñas recuperadas con éxito.',
     INTERNAL_SERVER_ERROR: '¡Vaya! Algo salió mal de nuestro lado.',
+    ADD_OTHER_STORE: 'Otra tienda añadida con éxito.',
+    MARKET_PLACE_LIST_EMPTY: 'No se encontraron artículos del mercado.',
+    MARKET_PLACE_LIST_FETCHED: 'Lista del mercado obtenida con éxito.',
+    COUPON_CODE_EXISTS: 'Cupón creado con éxito',
+    COUPON_CREATED: 'El código de cupón ya existe',
+    COUPON_FETCHED: 'Cupón obtenido con éxito',
+    COUPON_NOT_FOUND: 'Cupón no encontrado',
+    COUPON_UPDATED: 'Cupón actualizado con éxito',
+    COUPON_DELETED: 'El estado del cupón se actualizó correctamente.'
+
 };
 
 export default {

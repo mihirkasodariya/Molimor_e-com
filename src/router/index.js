@@ -12,7 +12,7 @@ import mediaRoutes from './mediaRoutes.js';
 import reviewRoutes from './reviewRoutes.js';
 import aboutRoutes from './aboutRoutes.js';
 import contactRoutes from './contactUsRoutes.js';
-
+import couponRoutes from './couponRoutes.js'
 const router = Router();
 
 router.use('/user', userRoutes);
@@ -28,5 +28,6 @@ router.use('/media', mediaRoutes);
 router.use('/review', reviewRoutes);
 router.use('/about', aboutRoutes);
 router.use('/contact', contactRoutes);
+router.use('/coupon', couponRoutes);
 
 export default router;

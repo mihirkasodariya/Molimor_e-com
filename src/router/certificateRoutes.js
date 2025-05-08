@@ -7,7 +7,7 @@ import { certificateImage } from "../utils/multerStorage.js";
 
 
 router.post('/addCertificate', certificateImage.single('image'), validateAccessToken, authorizeRoles("admin"), addCertificate); // admin
-router.get('/getAllCertificate', validateAccessToken, getAllCertificate); // user
+router.get('/getAllCertificate', getAllCertificate); // user
 router.get('/admin/getAllCertificate', validateAccessToken, authorizeRoles("admin"), adminGetAllCertificate); // admin
 router.delete('/deleteCertificateById/:id', validateAccessToken, authorizeRoles("admin"), deleteCertificateById); // admin
 router.put('/inActiveCertificateById/:id', validateAccessToken, authorizeRoles("admin"), inActiveCertificateById); // admin

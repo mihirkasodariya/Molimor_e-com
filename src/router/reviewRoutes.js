@@ -6,7 +6,7 @@ const { validateAccessToken, authorizeRoles } = auth;
 
 router.post('/addReview', validateAccessToken, addReview); // user
 router.delete('/admin/inActiveReview/:id', validateAccessToken, authorizeRoles('admin'), inActiveReview); // admin
-router.get('/getAllReviewByProductId/:id', validateAccessToken, getAllReviewByProductId); // admin
+router.get('/getAllReviewByProductId/:id', getAllReviewByProductId); // admin
 router.get('/admin/getAllReviewByProductId/:id', validateAccessToken, adminGetAllReviewByProductId); // admin
 
 export default router;

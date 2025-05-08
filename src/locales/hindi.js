@@ -80,6 +80,17 @@ const resMsg = {
     ABOUT_US_RETRIEVED: 'अबाउट अस सफलतापूर्वक प्राप्त किया गया।',
     REVIEW_NOT_FOUND: 'इस उत्पाद के लिए कोई समीक्षा नहीं मिली।',
     REVIEW_LIST_FETCHED: 'समीक्षाएं सफलतापूर्वक प्राप्त की गईं।',
+    ADD_OTHER_STORE: 'अन्य स्टोर सफलतापूर्वक जोड़ा गया।',
+    MARKET_PLACE_LIST_EMPTY: 'कोई मार्केटप्लेस नहीं मिला।',
+    MARKET_PLACE_LIST_FETCHED: 'मार्केटप्लेस सूची सफलतापूर्वक प्राप्त हुई।',
+    COUPON_CODE_EXISTS: 'कूपन कोड पहले से मौजूद है',
+    COUPON_CREATED: 'कूपन सफलतापूर्वक बनाया गया',
+    COUPON_FETCHED: 'कूपन सफलतापूर्वक प्राप्त किया गया',
+    COUPON_NOT_FOUND: 'कूपन नहीं मिला',
+    COUPON_UPDATED: 'कूपन को सफलतापूर्वक अपडेट किया गया',
+    COUPON_DELETED: 'कूपन की स्थिति सफलतापूर्वक अपडेट की गई।'
+
+
 
 
 };

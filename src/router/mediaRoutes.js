@@ -1,9 +1,9 @@
 import { Router } from 'express';
 const router = Router();
-import { addMedia, addVideoUrl, adminGetAllMedia, getAllMedia, deleteMediaById, inActiveMediaById, addSocialAccountURL, getSocialAccountURL, addMarketPlace, getMarketPlace } from '../controller/mediaController.js';
+import { addMedia, addVideoUrl, adminGetAllMedia, getAllMedia, deleteMediaById, inActiveMediaById, addSocialAccountURL, getSocialAccountURL, addMarketPlace, getMarketPlace, addInstaShop, getAllInstaShop } from '../controller/mediaController.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
-import { mediaFile, marketPlacePhotos } from "../utils/multerStorage.js";
+import { mediaFile, marketPlacePhotos, instaShopImage } from "../utils/multerStorage.js";
 
 
 router.post('/admin/addMedia', mediaFile.fields([{ name: 'image' }]), validateAccessToken, authorizeRoles("admin"), addMedia); // admin
@@ -21,4 +21,8 @@ router.get("/getSocialAccountURL", validateAccessToken, getSocialAccountURL);  /
 
 router.post("/admin/addMarketPlace", marketPlacePhotos.single('image'), validateAccessToken, authorizeRoles('admin'), addMarketPlace); // admin 
 router.get("/getMarketPlace", getMarketPlace);  // user
+
+// insta shop
+router.post('/admin/addInstaShop', instaShopImage.single('image'), validateAccessToken, authorizeRoles("admin"), addInstaShop); // admin
+router.get('/getAllInstaShop', getAllInstaShop); // user
 export default router;

@@ -1,7 +1,8 @@
-import mongoose, { Schema as _Schema, model } from "mongoose";
+import mongoose, { model } from 'mongoose';
+const { Schema } = mongoose;
 
-const aboutSchema = new _Schema({
-  content: String,
+const aboutSchema = new Schema({
+  content:  {type: String},
 }, { timestamps: true });
 
 const aboutUsModel = model('aboutus', aboutSchema);

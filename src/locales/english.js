@@ -86,7 +86,11 @@ const resMsg = {
     COUPON_FETCHED: 'Coupon fetched successfully',
     COUPON_NOT_FOUND: 'Coupon not found',
     COUPON_UPDATED: 'Coupon updated successfully',
-    COUPON_DELETED: 'Coupon Deleted successfully'
+    COUPON_DELETED: 'Coupon Deleted successfully',
+    NO_CART_FOUND: 'Cart not found',
+    COUPON_VALID: ' Coupon validate successfully!',
+    INVALID_COUPON:'The coupon code is invalid, expired.',
+    USER_SUBSCRIBE_SUCCESS:'Thank you for subscribing — welcome to the community!',
 };
 
 export default {

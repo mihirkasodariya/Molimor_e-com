@@ -1,5 +1,5 @@
 import model from '../model/mediaModel.js';
-const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation, marketPlaceModel, marketPlaceValidation } = model;
+const { mediaModel, mediaValidation, videoValidation, mediaIdValidation, mediaActiveValidation, socialAccountModel, socialAccountValidation, marketPlaceModel, marketPlaceValidation, instaShopModel } = model;
 import response from '../utils/response.js';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
@@ -57,7 +57,12 @@ export async function getAllMedia(req, res) {
         if (!media.length) {
             return response.success(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_MEDIA_FOUND, []);
         };
-        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_RETRIEVED, media);
+         const updatedMedia = media.map(item => ({
+            ...item.toObject(),
+            file: type === 'img' ? `/media/${item.file}` : item.file,
+        }));
+
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_RETRIEVED, updatedMedia);
     } catch (err) {
         console.error(err);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
@@ -189,3 +194,41 @@ export async function getMarketPlace(req, res) {
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };
+
+
+export async function addInstaShop(req, res) {
+    try {
+        // const image = req.file;
+        const url = req.body.url;
+        console.log('req.file?.filename', req.file?.filename)
+        const addInstaShop = await instaShopModel({
+            image: req.file?.filename,
+            url: url
+        });
+        await addInstaShop.save();
+
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_UPLOADED, addInstaShop);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+export async function getAllInstaShop(req, res) {
+    try {
+        const allInstaShops = await instaShopModel.find().sort({ createdAt: -1 });
+
+        const basePath = "/instaShop/";
+
+        const updatedInstaShops = allInstaShops.map((item) => ({
+            ...item._doc,
+            image: item.image ? `${basePath}${item.image}` : null
+        }));
+
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.MEDIA_RETRIEVED, updatedInstaShops);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    }
+}
+

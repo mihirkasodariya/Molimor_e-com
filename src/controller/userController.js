@@ -1,5 +1,5 @@
 import model from '../model/userModel.js';
-const { userModel, userRegisterValidation, userLoginValidation, googleOAuthValidation } = model
+const { userModel, userRegisterValidation, userLoginValidation, googleOAuthValidation, subscribeUserModel, subscribeUserValidation } = model
 import auth from "../middeleware/auth.js";
 const { generateJWToken } = auth;
 import response from '../utils/response.js';
@@ -7,9 +7,10 @@ import { hash, compare } from 'bcrypt';
 import axios from 'axios';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
+import { sendEmail } from '../utils/sendEmail.js';
 
 export async function register(req, res) {
-    const { fname, lname, email, mobile, password, gender, profilePhoto } = req.body;
+    const { fname, email, password } = req.body;
     const { error } = userRegisterValidation.validate(req.body);
     if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
@@ -22,11 +23,12 @@ export async function register(req, res) {
         const hashedPassword = await hash(password, 10);
         const createNewUser = new userModel({
             ...req.body,
-            profilePhoto: req.file?.filename,
             password: hashedPassword
         });
         await createNewUser.save();
         const token = await generateJWToken({ _id: createNewUser._id });
+        const mail = await sendEmail({ name: fname, email: email, subject: "Welcome to Molimore - Let's Build Something Beautiful Together!", html: "html file", text: "mihir test text" });
+        console.log('mail', mail)
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_REGISTER, { _id: createNewUser._id, token: token });
     } catch (error) {
         console.error(error);
@@ -49,7 +51,32 @@ export async function login(req, res) {
         if (!validPassword) {
             return response.error(res, req.languageCode, resStatusCode.UNAUTHORISED, resMessage.USER_ACCOUNT_NOT_FOUND, {});
         };
-        const token = await generateJWToken({ id: user._id });
+        const token = await generateJWToken({ id: user._id, role: 'user' });
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.LOGIN_SUCCESS, { _id: user._id, token: token });
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+export async function adminLogin(req, res) {
+    const { email, password, fcm } = req.body;
+    const { error } = userLoginValidation.validate(req.body);
+    if (error) {
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
+    };
+    try {
+        const user = await userModel.findOne({ email: email, isActive: true, role: 'admin' });
+        console.log('user', user)
+        if (!user) {
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.USER_ACCOUNT_NOT_FOUND, {});
+        };
+        const validPassword = await compare(password, user.password);
+        if (!validPassword) {
+            return response.error(res, req.languageCode, resStatusCode.UNAUTHORISED, resMessage.USER_ACCOUNT_NOT_FOUND, {});
+        };
+        await userModel.findByIdAndUpdate(user._id, { $set: { fcm } }, { new: true });
+        const token = await generateJWToken({ id: user._id, role: 'admin' });
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.LOGIN_SUCCESS, { _id: user._id, token: token });
     } catch (err) {
         console.error(err);
@@ -76,15 +103,17 @@ export async function profile(req, res) {
 
 export async function updateProfile(req, res) {
     try {
-        const { fname, lname, mobile, gender } = req.body;
+        const { fname, lname, mobile, gender, address } = req.body;
+        const user = await userModel.findById({ _id: req.user.id });
         const updatedUser = await userModel.findByIdAndUpdate(
             req.user.id,
             {
                 $set: {
-                    fname: fname ?? req.user?.fname,
-                    lname: lname ?? req.user?.lname,
-                    mobile: mobile ?? req.user?.mobile,
-                    gender: gender ?? req.user?.gender,
+                    fname: fname ?? user?.fname,
+                    lname: lname ?? user?.lname,
+                    mobile: mobile ?? user?.mobile,
+                    gender: gender ?? user?.gender,
+                    address: address ?? user?.address,
                     profilePhoto: req.file?.filename ?? user?.profilePhoto
                 }
             },
@@ -267,5 +296,46 @@ export async function getAllUsers(req, res) {
     } catch (err) {
         console.error(err);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+export async function addSubscribeUser(req, res) {
+    const { email } = req.body;
+
+    const { error } = subscribeUserValidation.validate({ email });
+    if (error) {
+        return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
+    };
+    try {
+        const existingUser = await userModel.findOne({ email });
+        const isRegistered = !!existingUser;
+
+        const userSubscribe = await subscribeUserModel.findOne({ email });
+        let newSubscriber;
+        if (!userSubscribe) {
+            newSubscriber = new subscribeUserModel({
+                email,
+                isRegistered
+            });
+            await newSubscriber.save();
+        };
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_SUBSCRIBE_SUCCESS, newSubscriber);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+export async function getAllSubscribedUsers(req, res) {
+    try {
+        const filter = {};
+        if (req.query.isRegistered !== undefined) {
+            filter.isRegistered = req.query.isRegistered === 'true';
+        };
+        const subscribers = await subscribeUserModel.find(filter);
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.FETCH_SUCCESS, subscribers);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
     };
 };

@@ -20,7 +20,7 @@ const convertPrice = async (inrPrice, targetCurrency = 'INR') => {
         const rate = await fetchConversionRate();
         return (inrPrice / rate).toFixed(2); // convert INR -> USD
     }
-    return inrPrice.toFixed(2); // return as INR
+    return inrPrice?.toFixed(2); // return as INR
 };
 
 export default {

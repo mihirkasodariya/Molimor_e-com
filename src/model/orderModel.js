@@ -11,14 +11,16 @@ const orderSchema = new Schema({
   items: [{
     productId: { type: Schema.Types.ObjectId, ref: 'products', required: true },
     quantity: { type: Number, required: true, min: 1 },
-    price: { type: Number, required: true }
+    price: { type: Number, required: true },
+    discountValue: { type: Number },
+    discountType: { type: String },
   }],
   paymentMethod: { type: String, required: true },
-  streetAddress: { type: [String], required: true },
+  shippingAddress: { type: Boolean, default: true },
   country: { type: String, required: true },
   state: { type: String, required: true },
   pincode: { type: Number, required: true },
-  shippingAddress: { type: [String] },
+  streetAddress: { type: [String] },
   mobile: { type: String, required: true },
   email: { type: String, required: true },
   shippingCharge: { type: String, required: true },
@@ -45,6 +47,12 @@ const itemValidation = Joi.object({
     'number.base': 'Price must be a number',
     'number.min': 'Price cannot be negative',
     'any.required': 'Price is required'
+  }),
+  discountValue: Joi.number().min(0).optional().messages({
+    'number.base': 'discountValue must be a number',
+  }),
+  discountType: Joi.string().optional().messages({
+    'string.base': 'discountType must be a string',
   }),
 });
 
@@ -77,12 +85,7 @@ const orderValidation = Joi.object({
     'any.only': 'Payment Method must be one of: Credit Card, Debit Card, PayPal, or Cash on Delivery',
     'any.required': 'Payment Method is required'
   }),
-  streetAddress: Joi.array().items(Joi.string()).required().messages({
-    'array.base': 'Street Address must be an array',
-    'array.min': 'Street Address must have at least one item',
-    'string.base': 'Each address must be a string',
-    'any.required': 'Street Address is required'
-  }),
+  shippingAddress: Joi.boolean().default(false),
   country: Joi.string().min(1).required().messages({
     'string.base': 'Country/Region must be a string',
     'string.min': 'Country/Region must be at least 1 characters',
@@ -98,7 +101,7 @@ const orderValidation = Joi.object({
     'string.min': 'Pincode Number must be at least 1 characters',
     'any.required': 'Pincode Number is required'
   }),
-  shippingAddress: Joi.array().items(Joi.string()).required().messages({
+  streetAddress: Joi.array().items(Joi.string()).required().messages({
     'array.base': 'Shipping Address must be an array',
     'string.base': 'Each address must be a string',
     'any.required': 'Shipping Address is required'

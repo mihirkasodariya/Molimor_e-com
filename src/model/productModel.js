@@ -8,8 +8,7 @@ const productSchema = new Schema({
     weight: { type: [String], required: true },
     price: { type: Number, required: true },
     mrp: { type: Number, required: true },
-    salePrice: { type: Number },
-    isSale: { type: Boolean, default: false },
+    // salePrice: { type: Number },
     description: { type: String, required: true },
     benefits: { type: String, required: true },
     categoryId: { type: _Schema.Types.ObjectId, ref: 'categorys' },
@@ -17,6 +16,7 @@ const productSchema = new Schema({
     sku: { type: String, required: true, unique: true },
     stock: { type: Number, default: 0 },
     quantity: { type: Number, default: 0 },
+    isPopular: { type: Boolean, default: false },
     isDelete: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },
 }, { timestamps: true });
@@ -66,11 +66,11 @@ const productValidation = Joi.object({
         'number.positive': 'MRP must be greater than 0',
         'any.required': 'MRP is required',
     }),
-    salePrice: Joi.number().optional().messages({
-        'number.base': 'Sale price must be a number',
-    }),
-    isSale: Joi.boolean().valid(true, false).default(false).messages({
-        'boolean.base': 'isSale must be true or false',
+    // salePrice: Joi.number().optional().messages({
+    //     'number.base': 'Sale price must be a number',
+    // }),
+    isPopular: Joi.boolean().valid(true, false).default(false).messages({
+        'boolean.base': 'isPopular must be true or false',
     }),
     description: Joi.string().required().messages({
         'string.base': 'Description must be a string',
@@ -110,6 +110,21 @@ const productValidation = Joi.object({
         'number.base': 'Quantity must be a number',
         'number.integer': 'Quantity must be an integer',
         'number.min': 'Quantity cannot be negative',
+    }),
+    salePrice: Joi.number().positive().optional().messages({
+        'number.base': 'Sale Price must be a number',
+        'number.positive': 'Sale Price must be greater than 0',
+        'any.required': 'Sale Price is required',
+    }),
+    isSale: Joi.boolean().optional().messages({
+        'boolean.base': 'isSale must be true or false',
+        'any.required': 'isSale is required',
+    }),
+    startSaleOn: Joi.date().optional().messages({
+        'date.base': 'startSaleOn must be a valid date',
+    }),
+    endSaleOn: Joi.date().optional().messages({
+        'date.base': 'endSaleOn must be a valid date',
     }),
     isDelete: Joi.boolean().valid(true, false).default(false).messages({
         'any.only': 'Is Delete must be "true" or "false"',

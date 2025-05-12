@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import { addSingleProduct, getAllProductsList, getAllAdminProductsList, getProductById, updateSingleProduct, deleteProductById, inActiveProductById, searchProduct, downloadAddBulkProductTemplate, uploadBulkProductsFile } from '../controller/productController.js';
+import { addSingleProduct, getAllProductsList, getAllAdminProductsList, getProductById, updateSingleProduct, deleteProductById, inActiveProductById, searchProduct, downloadAddBulkProductTemplate, uploadBulkProductsFile, getPopularProductList, getBigSalesProducts } from '../controller/productController.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
 import { productImage, uploadExcelFile } from '../utils/multerStorage.js';
@@ -17,5 +17,8 @@ router.put('/admin/inActiveProduct/:id', validateAccessToken, authorizeRoles("ad
 router.get('/searchProduct/:searchProduct', searchProduct); // user 
 router.get('/downloadAddBulkProductTemplate', validateAccessToken, authorizeRoles("admin"), downloadAddBulkProductTemplate); // admin
 router.get('/uploadBulkProductsFile', [uploadExcelFile.single('file'),], validateAccessToken, authorizeRoles("admin"), uploadBulkProductsFile); // admin
+
+router.get('/getPopularProductList', getPopularProductList); // user
+router.get('/getBigSalesProducts', getBigSalesProducts); // user
 
 export default router;

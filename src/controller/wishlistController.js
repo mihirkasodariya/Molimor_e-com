@@ -1,7 +1,10 @@
 import model from '../model/wishlistModel.js';
 const { wishlistModel, wishlistActionValidation } = model;
+import model1 from '../model/cartModel.js';
+const { cartModel } = model1;
 import response from '../utils/response.js';
 import constants from '../utils/constants.js';
+// import cartModel from '../model/cartModel.js';
 const { resStatusCode, resMessage } = constants;
 
 export async function addWishlist(req, res) {
@@ -36,12 +39,31 @@ export async function addWishlist(req, res) {
 
 export async function getWishlist(req, res) {
     const userId = req.user.id;
+
     try {
-        const wishlist = await wishlistModel.findOne({ userId }).populate('items.productId');
+        const wishlist = await wishlistModel.findOne({ userId, isActive: true }).populate('items.productId');
+        const cart = await cartModel.findOne({ userId, isActive: true });
+
         if (!wishlist) {
             return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.DATA_NOT_FOUND, []);
         };
-        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.WISHLIST_FETCHED, wishlist.items);
+        const filteredCartItems = cart?.items?.filter(item => item.isDelete === false) || [];
+
+        const cartProductIds = filteredCartItems.map(item => item.productId.toString());
+
+        const filteredWishlistItems = wishlist.items.filter(item => item.isDelete === false);
+
+        const wishlistWithCartFlag = filteredWishlistItems.map(item => {
+            const productId = item.productId?._id?.toString();
+            return {
+                ...item.toObject(),
+                productId: {
+                    ...item.productId.toObject(),
+                    isCart: cartProductIds.includes(productId)
+                },
+            };
+        });
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.WISHLIST_FETCHED, wishlistWithCartFlag);
     } catch (err) {
         console.error(err);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
@@ -50,24 +72,16 @@ export async function getWishlist(req, res) {
 
 export async function removeFromWishlist(req, res) {
     const { productId } = req.params;
-    const userId = req.user.id;
     const { error } = wishlistActionValidation.validate(req.params);
     if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
     try {
-        const wishlist = await wishlistModel.findOne({ userId });
-
-        if (!wishlist) {
-            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.DATA_NOT_FOUND, []);
-        };
-        const item = wishlist.items.find(item => item.productId.toString() === productId);
-        if (!item) {
-            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.PRODUCT_NOT_FOUND, {});
-        };
-        item.isDelete = true;
-        await wishlist.save();
-        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCT_DELETED_WISHLIST, wishlist, {});
+        await wishlistModel.updateOne(
+            { userId: req.user.id },
+            { $pull: { items: { productId } } }
+        );
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCT_DELETED_WISHLIST, {});
     } catch (err) {
         console.error(err);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});

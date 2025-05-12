@@ -113,3 +113,17 @@ const categoryStorage = diskStorage({
 });
 
 export const categoryImage = multer({ storage: categoryStorage });
+
+
+const instaShopStorage = diskStorage({
+    destination: function (req, file, cb) {
+        const dir = './public/instaShop';
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-instashop-" + file.originalname);
+    },
+});
+
+export const instaShopImage = multer({ storage: instaShopStorage });
+

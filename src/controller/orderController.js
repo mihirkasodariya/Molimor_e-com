@@ -5,6 +5,12 @@ import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
 import currency from '../utils/currency.js'
 const { convertPrice } = currency;
+import { sendNotification } from '../utils/sendNotification.js';
+import userModelfile from '../model/userModel.js';
+const { userModel } = userModelfile;
+import productModelfile from '../model/productModel.js';
+const { productModel } = productModelfile;
+import { Types } from 'mongoose';
 
 export async function placeOrder(req, res) {
     const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCharge, mobile, email, orderNote } = req.body;
@@ -41,6 +47,47 @@ export async function placeOrder(req, res) {
             orderNote
         });
 
+        const fullName = `${fname} ${lname}`;
+        const orderSummary = cartItems.slice(0, 2).map(i => `${i.quantity}x Item`).join(', ') + (cartItems.length > 2 ? '...' : '');
+
+        const adminFcmToken = await userModel.findById({ _id: req.user.id });
+
+        const productIds = cartItems.map(item => new Types.ObjectId(item.productId));
+
+        const orderedProducts = await productModel.find({
+            _id: { $in: productIds }
+        });
+        const productSkus = orderedProducts.map(product => product.sku).join(', ');
+
+
+        await sendNotification(
+            adminFcmToken.fcm,
+            {
+                title: '🛒 New Order Placed!',
+                body: `Order #${orderId} by ${fullName} for ₹${totalAmount}`
+            },
+            {
+                orderId,
+                customerName: fullName,
+                totalAmount: totalAmount.toString(),
+                paymentMethod,
+                mobile,
+                email,
+                shippingCharge,
+                SKU: productSkus,
+                totalItem: cartItems.length.toString(),
+                address: {
+                    streetAddress: streetAddress.join(', '),
+                    shippingAddress: shippingAddress,
+                    state,
+                    country,
+                    pincode
+                },
+                orderNote,
+                orderSummary
+            }
+        );
+
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDER_PLACED, order);
     } catch (error) {
         console.error(error);
@@ -51,16 +98,16 @@ export async function placeOrder(req, res) {
 export async function getAllUserOrders(req, res) {
     try {
         const userId = req.user.id;
-        let orders = await orderModel.find({ userId }).populate("items.productId").sort({ createdAt: -1 });
-
+        console.log('req.user.id', req.user.id)
+        let orders = await orderModel.find({ userId: req.user.id }).populate("items.productId").sort({ createdAt: -1 });
+        console.log('orders', orders)
         if (!orders || orders?.length === 0) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
 
         const updatedOrders = await Promise.all(orders.map(async (order) => {
-            const convertedPrice = await convertPrice(order.price, req.currency);
-            const convertedMRP = await convertPrice(order.mrp, req.currency);
-
+            // const convertedPrice = await convertPrice(order.price, req.currency);
+            // const convertedMRP = await convertPrice(order.mrp, req.currency);
             const updatedItems = order.items.map(item => {
                 if (item.productId && Array.isArray(item.productId.image)) {
                     item.productId.image = item.productId.image.map(img =>
@@ -69,13 +116,7 @@ export async function getAllUserOrders(req, res) {
                 }
                 return item;
             });
-
-            return {
-                ...order,
-                price: convertedPrice,
-                mrp: convertedMRP,
-                items: updatedItems,
-            };
+            return order
         }));
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDERS_RETRIEVED, updatedOrders);
     } catch (error) {
@@ -92,12 +133,14 @@ export async function getOrderById(req, res) {
     };
     try {
         const order = await orderModel.findOne({ orderId: orderId }).populate("items.productId");
+        console.log('order', order.userId)
         if (!order) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
+        const user = await userModel.findById({ _id : order.userId}).select('-password');
         const [convertedPrice, convertedMRP] = await Promise.all([
-            convertPrice(order.price, req.currency),
-            convertPrice(order.mrp, req.currency)
+            convertPrice(order?.price, req?.currency),
+            convertPrice(order?.mrp, req?.currency)
         ]);
         const updatedItems = order.items.map(item => {
             if (item.productId && Array.isArray(item.productId.image)) {
@@ -106,11 +149,12 @@ export async function getOrderById(req, res) {
                         ? img
                         : `/productImages/${img}`
                 );
-            }
+            };
             return item;
         });
         const updatedOrder = {
-            ...order,
+            ...order._doc,
+            user : user,
             price: convertedPrice,
             mrp: convertedMRP,
             items: updatedItems
@@ -188,7 +232,6 @@ export async function getAllOrders(req, res) {
     }
 };
 
-
 export async function updateOrderStatusByAdmin(req, res) {
 
     try {
@@ -201,7 +244,6 @@ export async function updateOrderStatusByAdmin(req, res) {
 
 export async function assignOrderCourierPatner(req, res) {
     try {
-
         return response.success(res, req?.languageCode, 200, 'Courier partner assigned and order status updated successfully', updatedOrder);
     } catch (error) {
         console.error(error);

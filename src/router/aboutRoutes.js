@@ -5,7 +5,7 @@ import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
 
 router.post("/addAbout", validateAccessToken, authorizeRoles('admin'), addAbout);
-router.get("/getAbout", authorizeRoles, getAbout);
+router.get("/getAbout", getAbout);
 
 
 export default router;

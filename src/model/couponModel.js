@@ -1,10 +1,10 @@
 import Joi from 'joi';
 import mongoose, { model } from 'mongoose';
-
 const { Schema } = mongoose;
 
 const couponSchema = new Schema({
-    code: { type: String, required: true, unique: true },
+    productId: { type: Schema.Types.ObjectId, ref: 'products'},
+    code: { type: String, required: true },
     description: { type: String },
     discountType: { type: String, required: true }, // percentage' ?? fixed
     discountValue: { type: Number, required: true },
@@ -15,9 +15,14 @@ const couponSchema = new Schema({
     isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const couponModel = model('Coupons', couponSchema);
+const couponModel = model('coupons', couponSchema);
 
 const couponValidation = Joi.object({
+    productId: Joi.string().length(24).optional().messages({
+        'string.base': 'Product ID must be a string',
+        'string.length': 'Product ID must be a valid 24-character ObjectId',
+        'any.required': 'Product ID is required'
+    }),
     code: Joi.string().required().messages({
         'string.base': 'Coupon code must be a string',
         'string.empty': 'Coupon code is required',
@@ -36,11 +41,11 @@ const couponValidation = Joi.object({
         'number.positive': 'Discount value must be a positive number',
         'any.required': 'Discount value is required'
     }),
-    minPurchase: Joi.number().min(0).allow(null).messages({
+    minPurchase: Joi.number().min(0).optional().messages({
         'number.base': 'Minimum purchase must be a number',
         'number.min': 'Minimum purchase must be at least 0'
     }),
-    maxPurchase: Joi.number().min(0).allow(null).messages({
+    maxPurchase: Joi.number().min(0).optional().messages({
         'number.base': 'Maximum purchase must be a number',
         'number.min': 'Maximum purchase must be at least 0'
     }),

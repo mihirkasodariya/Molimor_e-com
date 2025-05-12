@@ -88,7 +88,11 @@ const resMsg = {
     COUPON_FETCHED: 'Cupón obtenido con éxito',
     COUPON_NOT_FOUND: 'Cupón no encontrado',
     COUPON_UPDATED: 'Cupón actualizado con éxito',
-    COUPON_DELETED: 'El estado del cupón se actualizó correctamente.'
+    COUPON_DELETED: 'El estado del cupón se actualizó correctamente.',
+    COUPON_VALID:'¡Tu código de cupón es válido! Disfruta del descuento en tu compra elegible. ¡Felices compras!',
+    INVALID_COUPON:'El código de cupón es inválido',
+    USER_SUBSCRIBE_SUCCESS:'¡Gracias por suscribirte! Bienvenido a la comunidad.'
+
 
 };
 

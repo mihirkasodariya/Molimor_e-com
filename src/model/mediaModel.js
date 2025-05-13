@@ -123,7 +123,7 @@ const socialAccountValidation = Joi.object({
 
 const marketPlaceSchema = new Schema({
   image: { type: String, required: true },
-  link: { type: String, required: true },
+  link: { type: String, default: "" },
   isDelete: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
@@ -157,11 +157,9 @@ const instaShopValidation = Joi.object({
   image: Joi.string().uri().allow("").messages({
     'string.uri': 'Image must be a valid URI',
   }),
-  url: Joi.string().uri().required().messages({
+  url: Joi.string().uri().optional().messages({
     'string.base': 'URL must be a string',
     'string.uri': 'URL must be a valid URI',
-    'any.required': 'URL is required',
-    'string.empty': 'URL is required',
   }),
   isActive: Joi.boolean().default(true),
 });

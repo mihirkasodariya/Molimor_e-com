@@ -198,9 +198,7 @@ export async function getMarketPlace(req, res) {
 
 export async function addInstaShop(req, res) {
     try {
-        // const image = req.file;
         const url = req.body.url;
-        console.log('req.file?.filename', req.file?.filename)
         const addInstaShop = await instaShopModel({
             image: req.file?.filename,
             url: url

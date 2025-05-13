@@ -54,17 +54,42 @@ export function getAvailableFileName(dir, baseName, extension) {
     return filePath;
 }
 
-const bannerImageStorage = diskStorage({
-    destination: function (req, file, cb) {
-        const dir = './public/banner';
-        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + "-banner-" + file.originalname);
-    },
-});
-export const bannerImage = multer({ storage: bannerImageStorage });
+// const bannerImageStorage = diskStorage({
+//     destination: function (req, file, cb) {
+//         const dir = './public/banner';
+//         mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+//     },
+//     filename: function (req, file, cb) {
+//         cb(null, Date.now() + "-banner-" + file.originalname);
+//     },
+// });
+// export const bannerImage = multer({ storage: bannerImageStorage });
 
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+
+  if (!allowedTypes.includes(file.mimetype)) {
+    return cb(new Error('Only images are allowed (jpeg, png, jpg, webp).'), false);
+  }
+
+  cb(null, true);
+};
+
+const bannerImageStorage = diskStorage({
+  destination: function (req, file, cb) {
+    const dir = './public/banner';
+    mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-banner-" + file.originalname);
+  },
+});
+
+export const bannerImage = multer({
+  storage: bannerImageStorage,
+  limits: { fileSize: 1 * 1024 * 1024 }, // 1MB
+  fileFilter,
+}).single('image');
 
 const certificateImageStorage = diskStorage({
     destination: function (req, file, cb) {
@@ -92,7 +117,7 @@ export const mediaFile = multer({ storage: mediaStorage });
 
 const marketPlaceStorage = diskStorage({
     destination: function (req, file, cb) {
-        const dir = './public/otherStore';
+        const dir = './public/marketPlace';
         mkdir(dir, { recursive: true }, (error) => cb(error, dir));
     },
     filename: function (req, file, cb) {

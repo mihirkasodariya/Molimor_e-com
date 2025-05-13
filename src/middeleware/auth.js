@@ -33,7 +33,7 @@ const validateAccessToken = async (req, res, next) => {
         };
         const decodedToken = verify(token, secret, verifyOptions);
 
-        const rootUser = await userModel.findById({ _id: decodedToken.id });
+        const rootUser = await userModel.findById({ _id: decodedToken._id });
         if (!rootUser) {
             return res.status(401).json({ success: false, status: 401, message: 'Unauthorized User' });
         };
@@ -70,6 +70,9 @@ const setCurrency = (req, res, next) => {
     req.currency = req.query?.currency?.toUpperCase() || 'INR';
     next();
 };
+
+
+
 
 export default {
     generateJWToken,

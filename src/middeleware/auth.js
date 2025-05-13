@@ -33,7 +33,7 @@ const validateAccessToken = async (req, res, next) => {
         };
         const decodedToken = verify(token, secret, verifyOptions);
 
-        const rootUser = await userModel.findById({ _id: decodedToken._id });
+        const rootUser = await userModel.findById({ _id: decodedToken?.id || decodedToken?._id });
         if (!rootUser) {
             return res.status(401).json({ success: false, status: 401, message: 'Unauthorized User' });
         };

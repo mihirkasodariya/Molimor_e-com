@@ -17,7 +17,8 @@ import path from 'path';
 import fs from 'fs';
 import saleModel from '../model/productSaleModel.js'
 const { productSaleModel } = saleModel;
-import moment from 'moment';
+import wishModel from '../model/wishlistModel.js';
+const { wishlistModel } = wishModel;
 
 
 export async function addSingleProduct(req, res) {
@@ -52,7 +53,7 @@ export async function addSingleProduct(req, res) {
         await createnewProduct.save();
 
         const saveSale = await new productSaleModel({
-            productId: createnewProduct?.PRODUCTS_RETRIEVED,
+            productId: createnewProduct?._id,
             isSale,
             salePrice,
             startSaleOn,
@@ -366,7 +367,7 @@ export async function getAllProductsList(req, res) {
         }
 
         if (!priceFiltered.length) {
-            return response.error(res, req.languageCode, resStatusCode.NOT_FOUND, resMessage.NO_PRODUCTS_FOUND, {});
+            return response.success(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_PRODUCTS_FOUND, {});
         }
 
         const paginated = priceFiltered.slice((page - 1) * limit, (page - 1) * limit + parseInt(limit));
@@ -376,14 +377,24 @@ export async function getAllProductsList(req, res) {
                 convertPrice(product.price, req.currency),
                 convertPrice(product.mrp, req.currency)
             ]);
+            let isWishListExists = false
+            if (req?.query?.userId) {
+                isWishListExists = await wishlistModel.findOne({
+                    userId: req?.query?.userId,
+                    'items.productId': product._id,
+                    isActive: true
+                }).populate('items.productId');
+            };
             return {
                 ...product._doc,
+                isWishList: !!isWishListExists,
                 price: convertedPrice,
                 mrp: convertedMRP,
                 currency: req.currency,
                 image: product.image?.[0] ? `/productImages/${product.image[0]}` : null,
                 stockStatus: product.quantity > 0 ? 'instock' : 'outofstock'
             };
+
         }));
 
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, {
@@ -439,9 +450,17 @@ export async function getProductById(req, res) {
             convertPrice(product.price, req.currency),
             convertPrice(product.mrp, req.currency)
         ]);
-
+        let isWishListExists = false
+        if (req?.query?.userId) {
+            isWishListExists = await wishlistModel.findOne({
+                userId: req?.query?.userId,
+                'items.productId': product._id,
+                isActive: true
+            }).populate('items.productId');
+        };
         const updatedProduct = {
             ...product._doc,
+            isWishList: !!isWishListExists,
             price: parseFloat(convertedPrice),
             mrp: parseFloat(convertedMRP),
             currency: req.currency,
@@ -543,7 +562,7 @@ export async function deleteProductById(req, res) {
 
 export async function searchProduct(req, res) {
     try {
-        const { searchProduct } = req.params;
+        const { searchProduct } = req?.query;
 
         const { error } = productValidation.validate(req.body);
         if (error) {
@@ -559,7 +578,29 @@ export async function searchProduct(req, res) {
         if (!products?.length) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_MATCHING_PRODUCTS, {});
         };
-        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, products);
+
+        let wishlistProductIds = [];
+        if (req?.query?.userId) {
+            const wishlist = await wishlistModel.findOne({
+                userId: req.query.userId,
+                isActive: true
+            });
+
+            if (wishlist) {
+                wishlistProductIds = wishlist.items.map(item =>
+                    item.productId.toString()
+                );
+            }
+        }
+        const productsWithWishlist = products.map(product => {
+            const isWishlisted = wishlistProductIds.includes(product._id.toString());
+            return {
+                ...product._doc,
+                isWishList: !!isWishlisted
+            };
+        });
+
+        return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, productsWithWishlist);
     } catch (error) {
         console.error(error);
         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
@@ -752,12 +793,25 @@ export async function getPopularProductList(req, res) {
                 },
             },
         ]);
-        const popularProducts = result.map((product) => {
-            return {
-                ...product,
-                image: product.image?.map((img) => `/productImages/${img}`) || [],
-            };
-        });
+        const popularProducts = await Promise.all(
+            result.map(async (product) => {
+                let isWishListExists = false;
+
+                if (req?.query?.userId) {
+                    isWishListExists = await wishlistModel.findOne({
+                        userId: req.query.userId,
+                        'items.productId': product._id,
+                        isActive: true
+                    }).populate('items.productId');
+                };
+                return {
+                    ...product,
+                    image: product.image?.map((img) => `/productImages/${img}`) || [],
+                    isWishList: !!isWishListExists,
+                };
+            })
+        );
+
 
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, popularProducts);
     } catch (error) {
@@ -842,17 +896,31 @@ export async function getBigSalesProducts(req, res) {
         const monthly = [];
 
         for (const product of products) {
+            let isWishListExists = false;
+            if (req?.query?.userId) {
+                isWishListExists = await wishlistModel.findOne({
+                    userId: req.query.userId,
+                    'items.productId': product._id,
+                    isActive: true
+                }).populate('items.productId');
+            };
+
+            const productWithWishlist = {
+                ...product,
+                isWishList: !!isWishListExists
+            };
+
             const start = new Date(product.startSaleOn);
             const end = new Date(product.endSaleOn);
 
             const durationInDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
             if (durationInDays <= 1) {
-                daily.push(product);
+                daily.push(productWithWishlist);
             } else if (durationInDays <= 7) {
-                weekly.push(product);
+                weekly.push(productWithWishlist);
             } else {
-                monthly.push(product);
+                monthly.push(productWithWishlist);
             }
         }
 

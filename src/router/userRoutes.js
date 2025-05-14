@@ -1,7 +1,7 @@
 import { Router } from 'express';
 const router = Router();
-import { register, login, adminLogin, profile, updateProfile, getGoogleOAuthUrl, googleOAuthLogin, getFacebookOAuthUrl, facebookOAuthLogin, getAllUsers, getUserById, updateUserById, inActiveUserById, addSubscribeUser, getAllSubscribedUsers } from '../controller/userController.js';
-import { saveUserProfile } from '../utils/multerStorage.js';
+import { register, login, adminLogin, profile, updateProfile, getGoogleOAuthUrl, googleOAuthLogin, getFacebookOAuthUrl, facebookOAuthLogin, getAllUsers, getUserById, updateUserById, inActiveUserById, addSubscribeUser, getAllSubscribedUsers, addEmailShopNowButton, getEmailShopNowButton} from '../controller/userController.js';
+import { saveUserProfile, uploadEmailImages} from '../utils/multerStorage.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
 
@@ -26,5 +26,8 @@ router.delete('/inActiveUserById/:id', validateAccessToken, authorizeRoles('admi
 router.post('/addSubscribeUser', addSubscribeUser); // subscribe user 
 router.get('/admin/getAllSubscribedUsers', getAllSubscribedUsers); // subscribe admin 
 
+
+router.post('/admin/addEmailShopNowButton', uploadEmailImages, validateAccessToken, authorizeRoles('admin'), addEmailShopNowButton); // admin add  url using email send 
+router.get('/getEmailShopNowButton', getEmailShopNowButton); // using email send 
 
 export default router;

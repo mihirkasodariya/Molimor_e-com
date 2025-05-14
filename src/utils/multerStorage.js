@@ -1,7 +1,7 @@
 import multer, { diskStorage } from 'multer';
 import { mkdir, existsSync } from "fs";
 import { extname, join } from 'path';
-
+import path from 'path';
 const saveUserProfile = diskStorage({
     destination: function (req, file, cb) {
         cb(null, "./public/userProfile");
@@ -66,29 +66,29 @@ export function getAvailableFileName(dir, baseName, extension) {
 // export const bannerImage = multer({ storage: bannerImageStorage });
 
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
 
-  if (!allowedTypes.includes(file.mimetype)) {
-    return cb(new Error('Only images are allowed (jpeg, png, jpg, webp).'), false);
-  }
+    if (!allowedTypes.includes(file.mimetype)) {
+        return cb(new Error('Only images are allowed (jpeg, png, jpg, webp).'), false);
+    }
 
-  cb(null, true);
+    cb(null, true);
 };
 
 const bannerImageStorage = diskStorage({
-  destination: function (req, file, cb) {
-    const dir = './public/banner';
-    mkdir(dir, { recursive: true }, (error) => cb(error, dir));
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-banner-" + file.originalname);
-  },
+    destination: function (req, file, cb) {
+        const dir = './public/banner';
+        mkdir(dir, { recursive: true }, (error) => cb(error, dir));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-banner-" + file.originalname);
+    },
 });
 
 export const bannerImage = multer({
-  storage: bannerImageStorage,
-  limits: { fileSize: 1 * 1024 * 1024 }, // 1MB
-  fileFilter,
+    storage: bannerImageStorage,
+    limits: { fileSize: 1 * 1024 * 1024 }, // 1MB
+    fileFilter,
 }).single('image');
 
 const certificateImageStorage = diskStorage({
@@ -152,3 +152,39 @@ const instaShopStorage = diskStorage({
 
 export const instaShopImage = multer({ storage: instaShopStorage });
 
+
+const aboutusImagesStorage = diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "./public/aboutusImage");
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+            const first4Chars = file.originalname.slice(0, 4);
+        cb(null, Date.now() + '-aboutusImage' + first4Chars + ext);
+    },
+});
+
+const aboutusImage = multer({ storage: aboutusImagesStorage });
+export const uploadAboutUsImages = aboutusImage.fields([
+    { name: 'img', maxCount: 1 },
+    { name: 'box1Img', maxCount: 1 },
+    { name: 'box2Img', maxCount: 1 },
+    { name: 'box3Img', maxCount: 1 },
+]);
+
+
+const emailImagesStorage = diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "./public/aboutusImage");
+    },
+    filename: function (req, file, cb) {
+        const ext = path.extname(file.originalname);
+            const first4Chars = file.originalname.slice(0, 4);
+        cb(null, Date.now() + '-aboutusImage' + first4Chars + ext);
+    },
+});
+
+const emailImage = multer({ storage: emailImagesStorage });
+export const uploadEmailImages = emailImage.fields([
+    { name: 'image', maxCount: 2 },
+    ]);

@@ -25,7 +25,7 @@ const orderSchema = new Schema({
   email: { type: String, required: true },
   shippingCharge: { type: String, required: true },
   totalAmount: { type: Number, required: true, min: 1 },
-  orderNote: { type: String, required: true, min: 1 },
+  orderNote: { type: String, required: false, default: "" },
   status: { type: String, default: 'Processing', required: true },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });
@@ -120,9 +120,7 @@ const orderValidation = Joi.object({
     'string.empty': 'Shipping Charge is required',
     'any.required': 'Shipping Charge is required'
   }),
-  orderNote: Joi.string().optional().messages({
-    'string.base': 'Order Note must be a string',
-  }),
+  orderNote: Joi.string().allow(null, '').default(''),
   status: Joi.string().valid('Processing', 'Shipped', 'Delivered', 'Cancelled').default('Processing'),
   isActive: Joi.boolean().default(true)
 });

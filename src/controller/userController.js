@@ -1,5 +1,5 @@
 import model from '../model/userModel.js';
-const { userModel, userRegisterValidation, userLoginValidation, googleOAuthValidation, subscribeUserModel, subscribeUserValidation } = model
+const { userModel, userRegisterValidation, userLoginValidation, googleOAuthValidation, subscribeUserModel, subscribeUserValidation, shopNowEmailButtonModel } = model
 import auth from "../middeleware/auth.js";
 const { generateJWToken } = auth;
 import response from '../utils/response.js';
@@ -8,6 +8,7 @@ import axios from 'axios';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
 import { sendEmail } from '../utils/sendEmail.js';
+// import welcomeEmailTemplate from '../../template/email/welcomeEmailTemplate.html'
 
 export async function register(req, res) {
     const { fname, email, password } = req.body;
@@ -15,6 +16,15 @@ export async function register(req, res) {
     if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
     };
+    // const mail = await sendEmail(
+    //     "welcomeEmailTemplate.html",
+    //     fname,
+    //     email,
+    //     "Welcome to Molimore - Let's Build Something Beautiful Together!",
+    //     // htmlTemplatePath: `${}`, // Full path to the template file
+    //     "mihir test text"
+    // );
+    // console.log('mail', mail)
     try {
         const userExists = await userModel.findOne({ email });
         if (userExists?.email) {
@@ -27,7 +37,13 @@ export async function register(req, res) {
         });
         await createNewUser.save();
         const token = await generateJWToken({ _id: createNewUser._id });
-        const mail = await sendEmail({ name: fname, email: email, subject: "Welcome to Molimore - Let's Build Something Beautiful Together!", html: "html file", text: "mihir test text" });
+        const mail = await sendEmail(
+            "welcomeEmailTemplate.html",
+            fname,
+            email,
+            "Welcome to Molimore",
+            `Hi ${fname}`
+        );
         console.log('mail', mail)
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_REGISTER, { _id: createNewUser._id, token: token });
     } catch (error) {
@@ -334,6 +350,60 @@ export async function getAllSubscribedUsers(req, res) {
         };
         const subscribers = await subscribeUserModel.find(filter);
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.FETCH_SUCCESS, subscribers);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};
+
+
+export async function addEmailShopNowButton(req, res) {
+    const { url } = req.body;
+    const images = req.files.image;
+
+    try {
+        let newSubscriber;
+        const dataExist = await shopNowEmailButtonModel.find({});
+
+        const newImageFilenames = images.map(img => img.filename);
+
+        if (dataExist.length > 0) {
+            const existingImages = dataExist[0].image || [];
+
+            let combinedImages = [...existingImages, ...newImageFilenames];
+
+            combinedImages = combinedImages.slice(-2);
+
+            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({}, {
+                url,
+                image: combinedImages
+            }, { new: true });
+        } else {
+            newSubscriber = await shopNowEmailButtonModel.create({
+                url,
+                image: newImageFilenames.slice(0, 2)
+            });
+        };
+
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_SUBSCRIBE_SUCCESS, newSubscriber);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    }
+}
+
+
+
+
+export async function getEmailShopNowButton(req, res) {
+    try {
+        const getEmailShopNowButton = await shopNowEmailButtonModel.findOne({ isActive: true });
+        const resData = {
+            image1: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton.image[0],
+            image2: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton.image[1],
+            url: getEmailShopNowButton.url
+        }
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_SUBSCRIBE_SUCCESS, resData);
     } catch (err) {
         console.error(err);
         return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});

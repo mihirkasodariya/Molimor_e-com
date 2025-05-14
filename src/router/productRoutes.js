@@ -14,7 +14,7 @@ router.delete('/admin/deleteProduct/:id', validateAccessToken, authorizeRoles("a
 router.put('/admin/inActiveProduct/:id', validateAccessToken, authorizeRoles("admin"), inActiveProductById); // admin
 
 
-router.get('/searchProduct/:searchProduct', searchProduct); // user 
+router.get('/searchProduct', searchProduct); // user 
 router.get('/downloadAddBulkProductTemplate', validateAccessToken, authorizeRoles("admin"), downloadAddBulkProductTemplate); // admin
 router.get('/uploadBulkProductsFile', [uploadExcelFile.single('file'),], validateAccessToken, authorizeRoles("admin"), uploadBulkProductsFile); // admin
 

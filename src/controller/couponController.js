@@ -101,6 +101,15 @@ export async function validateCoupon(req, res) {
     const currentDate = new Date();
 
     try {
+        const couponExits = await couponModel.findOne({
+            code: code,
+            isActive: true,
+            validFrom: { $lte: currentDate },
+            validTo: { $gte: currentDate },
+        });
+        if (!couponExits) {
+            return response.error(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.COUPON_NOT_FOUND, {});
+        };
         const validationResults = await Promise.all(item.map(async ({ productId, price }) => {
             let isCoupon = false;
 
@@ -110,7 +119,7 @@ export async function validateCoupon(req, res) {
                 productCoupon = await couponModel.findOne({
                     code: code,
                     isActive: true,
-                    productId: new mongoose.Types.ObjectId(productId), 
+                    productId: new mongoose.Types.ObjectId(productId),
                     validFrom: { $lte: currentDate },
                     validTo: { $gte: currentDate },
                 });
@@ -127,7 +136,7 @@ export async function validateCoupon(req, res) {
 
             if (productCoupon || priceCoupon) {
                 isCoupon = true;
-            }
+            };
 
             return {
                 productId,

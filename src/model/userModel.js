@@ -86,11 +86,30 @@ const subscribeUserValidation = Joi.object({
 });
 
 
+const emailShopNowButtonSchema = new Schema({
+    url: { type: String, required: true },
+    isActive: { type: Boolean, default: true },
+    image: { type: [String], default: [] }, 
+}, { timestamps: true });
+
+const shopNowEmailButtonModel = model('shop_now_email_button', emailShopNowButtonSchema);
+
+
+// const subscribeUserValidation = Joi.object({
+//   email: Joi.string().email().required().messages({
+//     'string.empty': 'Email is required.',
+//     'string.email': 'Invalid email format.'
+//   }),
+//   isActive: Joi.boolean().optional(),
+// });
+
 export default {
     userModel,
     userRegisterValidation,
     userLoginValidation,
     googleOAuthValidation,
     subscribeUserModel,
-    subscribeUserValidation
+    subscribeUserValidation,
+
+    shopNowEmailButtonModel,
 };

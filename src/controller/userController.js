@@ -37,12 +37,21 @@ export async function register(req, res) {
         });
         await createNewUser.save();
         const token = await generateJWToken({ _id: createNewUser._id });
+        const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true });
+
+        const data = {
+            name: fname,
+            image1: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[0],
+            image2: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[1],
+            url: getEmailShopNowButton?.url,
+        }
+
         const mail = await sendEmail(
-            "welcomeEmailTemplate.html",
-            fname,
+            "welcomeEmailTemplate.ejs",
             email,
             "Welcome to Molimore",
-            `Hi ${fname}`
+            `Hi ${fname}`,
+            data
         );
         console.log('mail', mail)
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_REGISTER, { _id: createNewUser._id, token: token });

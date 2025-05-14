@@ -6,6 +6,7 @@ const { Schema } = mongoose;
 const certificateSchema = new Schema({
   image: { type: String, required: true },
   description: { type: String, required: true },
+  position: { type: Number, required: true },
   isDelete: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
 }, { timestamps: true });

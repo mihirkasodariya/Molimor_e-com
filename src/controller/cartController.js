@@ -21,7 +21,7 @@ export async function addToCart(req, res) {
                 if (existingItem) {
                     existingItem.quantity += newItem.quantity;
                     existingItem.isDelete = false;
-                    existingItem.weight = weight
+                    existingItem.weight = newItem.weight;
                 } else {
                     existingCart.items.push(newItem);
                 };

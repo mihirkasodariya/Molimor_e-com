@@ -796,11 +796,10 @@ export async function getPopularProductList(req, res) {
         const popularProducts = await Promise.all(
             result.map(async (product) => {
                 let isWishListExists = false;
-
                 if (req?.query?.userId) {
                     isWishListExists = await wishlistModel.findOne({
-                        userId: req.query.userId,
-                        'items.productId': product._id,
+                        userId: req?.query?.userId,
+                        'items.productId': product?._id,
                         isActive: true
                     }).populate('items.productId');
                 };

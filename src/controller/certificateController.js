@@ -4,7 +4,7 @@ import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
 
 export async function addCertificate(req, res) {
-    const { description } = req.body;
+    const { description, position } = req.body;
     const { error } = certificateValidation.validate({ image: req?.file?.filename, description: description });
     if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
@@ -12,7 +12,8 @@ export async function addCertificate(req, res) {
     try {
         const addCertificate = await certificateModel.create({
             image: req?.file.filename,
-            description: description
+            description: description,
+            position : position 
         });
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CERTIFICATE_ADDED, addCertificate);
     } catch (err) {
@@ -23,7 +24,7 @@ export async function addCertificate(req, res) {
 
 export async function getAllCertificate(req, res) {
     try {
-        const certificateList = await certificateModel.find({ isActive: true, isDelete: false }).sort({ createdAt: -1 });
+        const certificateList = await certificateModel.find({ isActive: true, isDelete: false }).sort({ position: 1 });
         if (!certificateList) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.CERTIFICATE_LIST_EMPTY, []);
         };

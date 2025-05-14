@@ -55,11 +55,16 @@ export async function getWishlist(req, res) {
 
         const wishlistWithCartFlag = filteredWishlistItems.map(item => {
             const productId = item.productId?._id?.toString();
+    const product = item.productId?.toObject?.();
+
             return {
                 ...item.toObject(),
                 productId: {
                     ...item.productId.toObject(),
-                    isCart: cartProductIds.includes(productId)
+                    isCart: cartProductIds.includes(productId),
+                     image: product?.image?.[0]
+                ? `/productImages/${product.image[0]}`
+                : ""
                 },
             };
         });

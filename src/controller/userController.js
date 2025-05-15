@@ -37,7 +37,7 @@ export async function register(req, res) {
         });
         await createNewUser.save();
         const token = await generateJWToken({ _id: createNewUser._id });
-        const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true, for:"welcomeEmail" });
+        const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true, for: "welcomeEmail" });
 
         const data = {
             name: fname,
@@ -341,8 +341,8 @@ export async function addSubscribeUser(req, res) {
                 isRegistered
             });
             await newSubscriber.save();
-            const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true, for:"subscribeEmail" });
-
+        };
+        const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true, for: "subscribeEmail" });
         const data = {
             // name: fname || "",
             productImage1: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[0],
@@ -356,7 +356,6 @@ export async function addSubscribeUser(req, res) {
             `Hi`,
             data
         );
-        };
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_SUBSCRIBE_SUCCESS, newSubscriber);
     } catch (err) {
         console.error(err);
@@ -385,7 +384,7 @@ export async function addEmailShopNowButton(req, res) {
 
     try {
         let newSubscriber;
-        const dataExist = await shopNowEmailButtonModel.findOne({isActive : true, for:"welcomeEmail"});
+        const dataExist = await shopNowEmailButtonModel.findOne({ isActive: true, for: "welcomeEmail" });
 
         const newImageFilenames = images.map(img => img.filename);
 
@@ -396,7 +395,7 @@ export async function addEmailShopNowButton(req, res) {
 
             combinedImages = combinedImages.slice(-2);
 
-            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({isActive : true, for:"welcomeEmail"}, {
+            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({ isActive: true, for: "welcomeEmail" }, {
                 url,
                 image: combinedImages
             }, { new: true });
@@ -420,11 +419,11 @@ export async function addsubscribeEmailTemp(req, res) {
 
     try {
         let newSubscriber;
-        const dataExist = await shopNowEmailButtonModel.findOne({isActive : true, for:"subscribeEmail"});
+        const dataExist = await shopNowEmailButtonModel.findOne({ isActive: true, for: "subscribeEmail" });
 
         const newImageFilenames = images.map(img => img.filename);
 
-        console.log('dataExist',dataExist)
+        console.log('dataExist', dataExist)
         if (dataExist !== null) {
             const existingImages = dataExist[0]?.image || [];;
 
@@ -432,7 +431,7 @@ export async function addsubscribeEmailTemp(req, res) {
 
             combinedImages = combinedImages.slice(-2);
 
-            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({isActive : true, for:"subscribeEmail"}, {
+            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({ isActive: true, for: "subscribeEmail" }, {
                 url,
                 image: combinedImages
             }, { new: true });
@@ -441,7 +440,7 @@ export async function addsubscribeEmailTemp(req, res) {
             newSubscriber = await shopNowEmailButtonModel.create({
                 url,
                 image: newImageFilenames.slice(0, 2),
-                for:"subscribeEmail"
+                for: "subscribeEmail"
             });
             console.log('newSubscriber', newSubscriber)
         };

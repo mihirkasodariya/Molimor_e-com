@@ -14,6 +14,8 @@ const productSchema = new Schema({
     categoryId: { type: _Schema.Types.ObjectId, ref: 'categorys' },
     image: [{ type: String }],
     sku: { type: String, required: true, unique: true },
+    hsnCode: { type: Number, required: true },
+    gst: { type: String, required: true, },
     stock: { type: Number, default: 0 },
     quantity: { type: Number, default: 0 },
     isPopular: { type: Boolean, default: false },
@@ -100,6 +102,16 @@ const productValidation = Joi.object({
         'string.base': 'SKU must be a string',
         'string.empty': 'SKU is required',
         'any.required': 'SKU is required',
+    }),
+    hsnCode: Joi.string().required().messages({
+        'string.base': 'hsnCode must be a string',
+        'string.empty': 'hsnCode is required',
+        'any.required': 'hsnCode is required',
+    }),
+    gst: Joi.string().required().messages({
+        'string.base': 'gst must be a string',
+        'string.empty': 'gst is required',
+        'any.required': 'gst is required',
     }),
     stock: Joi.number().integer().min(0).default(0).messages({
         'number.base': 'Stock must be a number',
@@ -192,6 +204,22 @@ const updateProductValidation = Joi.object({
     }),
     isSale: Joi.boolean().valid(true, false).default(false).messages({
         'boolean.base': 'isSale must be true or false',
+    }),
+    startSaleOn: Joi.date().optional().messages({
+        'date.base': 'startSaleOn must be a valid date',
+    }),
+    endSaleOn: Joi.date().optional().messages({
+        'date.base': 'endSaleOn must be a valid date',
+    }),
+     hsnCode: Joi.string().required().messages({
+        'string.base': 'hsnCode must be a string',
+        'string.empty': 'hsnCode is required',
+        'any.required': 'hsnCode is required',
+    }),
+    gst: Joi.string().required().messages({
+        'string.base': 'gst must be a string',
+        'string.empty': 'gst is required',
+        'any.required': 'gst is required',
     }),
     image: Joi.array()
         .items(Joi.string().pattern(/^[\w,\s-]+\.(jpg|jpeg|png|gif|webp)$/i).required().messages({

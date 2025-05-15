@@ -122,8 +122,8 @@ export async function getUserCartAndWishListCount(req, res) {
         const wishlist = await wishlistModel.findOne({ userId: req.user.id, isActive: true }).populate('items.productId');
         const wishListItems = wishlist?.items.filter(item => item?.isDelete === false);
         const resData = {
-           cart : cartItems?.length,
-           wishList : wishListItems?.length
+           cart : cartItems?.length || 0,
+           wishList : wishListItems?.length || 0
         }
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CART_FETCHED, resData);
     } catch (error) {

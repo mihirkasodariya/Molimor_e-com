@@ -22,7 +22,7 @@ const { wishlistModel } = wishModel;
 
 
 export async function addSingleProduct(req, res) {
-    const { title, isFeatured, weight, price, mrp, isSale, salePrice, startSaleOn, endSaleOn, description, benefits, categoryId, image, sku, stock, quantity, isActive } = req.body;
+    const { title, isFeatured, weight, price, mrp, isSale, salePrice, startSaleOn, endSaleOn, description, benefits, categoryId, image, sku, hsnCode, gst, stock, quantity, isActive } = req.body;
     let isFeaturedConvertArry = [];
     let weightArry = [];
     if (isFeatured && typeof isFeatured === 'string') {
@@ -48,6 +48,7 @@ export async function addSingleProduct(req, res) {
         const fileNames = req?.files?.image?.map(file => file.filename);
         const createnewProduct = new productModel({
             ...req.body,
+            gst : gst + "%",
             image: fileNames
         });
         await createnewProduct.save();

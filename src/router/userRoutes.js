@@ -1,6 +1,6 @@
 import { Router } from 'express';
 const router = Router();
-import { register, login, adminLogin, profile, updateProfile, getGoogleOAuthUrl, googleOAuthLogin, getFacebookOAuthUrl, facebookOAuthLogin, getAllUsers, getUserById, updateUserById, inActiveUserById, addSubscribeUser, getAllSubscribedUsers, addEmailShopNowButton, getEmailShopNowButton} from '../controller/userController.js';
+import { register, login, adminLogin, profile, updateProfile, getGoogleOAuthUrl, googleOAuthLogin, getFacebookOAuthUrl, facebookOAuthLogin, getAllUsers, getUserById, updateUserById, inActiveUserById, addSubscribeUser, getAllSubscribedUsers, addEmailShopNowButton, getEmailShopNowButton, addsubscribeEmailTemp} from '../controller/userController.js';
 import { saveUserProfile, uploadEmailImages} from '../utils/multerStorage.js';
 import auth from "../middeleware/auth.js";
 const { validateAccessToken, authorizeRoles } = auth;
@@ -29,5 +29,7 @@ router.get('/admin/getAllSubscribedUsers', getAllSubscribedUsers); // subscribe 
 
 router.post('/admin/addEmailShopNowButton', uploadEmailImages, validateAccessToken, authorizeRoles('admin'), addEmailShopNowButton); // admin add  url using email send 
 router.get('/getEmailShopNowButton', getEmailShopNowButton); // using email send 
+
+router.post('/admin/addsubscribeEmailTemp', uploadEmailImages, validateAccessToken, authorizeRoles('admin'), addsubscribeEmailTemp); // admin add  url using email send 
 
 export default router;

@@ -13,13 +13,12 @@ const { productModel } = productModelfile;
 import { Types } from 'mongoose';
 
 export async function placeOrder(req, res) {
-    const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCharge, mobile, email, orderNote } = req.body;
+    const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCountry, shippingState, shippingPincode, shippingCharge, mobile, email, orderNote } = req.body;
 
     const { error } = orderValidation.validate(req.body);
         if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error?.details[0].message);
     };
-    console.log('dsjfbj')
     try {
         let totalAmount = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
@@ -42,7 +41,10 @@ export async function placeOrder(req, res) {
             state,
             pincode,
             shippingAddress,
+            shippingCountry,
             shippingCharge,
+            shippingState,
+            shippingPincode,
             mobile,
             email,
             totalAmount,

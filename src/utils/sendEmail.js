@@ -14,10 +14,11 @@ export async function sendEmail(templateName, email, subject, text, data = {}) {
             email,
             subject,
             text,
-            name: data.name,
-            shopNow: data.url,
-            productImage1: data.image1,
-            productImage2: data.image2,
+            data
+            // name: data.name,
+            // shopNow: data.url,
+            // productImage1: data.image1,
+            // productImage2: data.image2,
         });
 
         const response = await axios.post(

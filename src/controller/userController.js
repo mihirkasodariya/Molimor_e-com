@@ -37,23 +37,21 @@ export async function register(req, res) {
         });
         await createNewUser.save();
         const token = await generateJWToken({ _id: createNewUser._id });
-        const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true });
+        const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true, for:"welcomeEmail" });
 
         const data = {
             name: fname,
-            image1: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[0],
-            image2: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[1],
-            url: getEmailShopNowButton?.url,
-        }
-
+            productImage1: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[0],
+            productImage2: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[1],
+            shopNow: getEmailShopNowButton?.url,
+        };
         const mail = await sendEmail(
             "welcomeEmailTemplate.ejs",
             email,
-            "Welcome to Molimore",
+            "Welcome to Molimor",
             `Hi ${fname}`,
             data
         );
-        console.log('mail', mail)
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_REGISTER, { _id: createNewUser._id, token: token });
     } catch (error) {
         console.error(error);
@@ -343,6 +341,21 @@ export async function addSubscribeUser(req, res) {
                 isRegistered
             });
             await newSubscriber.save();
+            const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true, for:"subscribeEmail" });
+
+        const data = {
+            name: fname,
+            productImage1: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[0],
+            productImage2: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[1],
+            shopNow: getEmailShopNowButton?.url,
+        };
+        await sendEmail(
+            "subscribeEmail.ejs",
+            email,
+            "Thanks for Joining Molimor - You're Officially In",
+            `Hi ${fname}`,
+            data
+        );
         };
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_SUBSCRIBE_SUCCESS, newSubscriber);
     } catch (err) {
@@ -372,18 +385,18 @@ export async function addEmailShopNowButton(req, res) {
 
     try {
         let newSubscriber;
-        const dataExist = await shopNowEmailButtonModel.find({});
+        const dataExist = await shopNowEmailButtonModel.findOne({isActive : true, for:"welcomeEmail"});
 
         const newImageFilenames = images.map(img => img.filename);
 
-        if (dataExist.length > 0) {
+        if (!dataExist) {
             const existingImages = dataExist[0].image || [];
 
             let combinedImages = [...existingImages, ...newImageFilenames];
 
             combinedImages = combinedImages.slice(-2);
 
-            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({}, {
+            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({isActive : true, for:"welcomeEmail"}, {
                 url,
                 image: combinedImages
             }, { new: true });
@@ -401,6 +414,44 @@ export async function addEmailShopNowButton(req, res) {
     }
 }
 
+export async function addsubscribeEmailTemp(req, res) {
+    const { url } = req.body;
+    const images = req.files.image;
+
+    try {
+        let newSubscriber;
+        const dataExist = await shopNowEmailButtonModel.findOne({isActive : true, for:"subscribeEmail"});
+
+        const newImageFilenames = images.map(img => img.filename);
+
+        console.log('dataExist',dataExist)
+        if (dataExist !== null) {
+            const existingImages = dataExist[0]?.image || [];;
+
+            let combinedImages = [...existingImages, ...newImageFilenames];
+
+            combinedImages = combinedImages.slice(-2);
+
+            newSubscriber = await shopNowEmailButtonModel.findOneAndUpdate({isActive : true, for:"subscribeEmail"}, {
+                url,
+                image: combinedImages
+            }, { new: true });
+        } else {
+            console.log('newImageFilenames', newImageFilenames)
+            newSubscriber = await shopNowEmailButtonModel.create({
+                url,
+                image: newImageFilenames.slice(0, 2),
+                for:"subscribeEmail"
+            });
+            console.log('newSubscriber', newSubscriber)
+        };
+
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.USER_SUBSCRIBE_SUCCESS, newSubscriber);
+    } catch (err) {
+        console.error(err);
+        return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    }
+}
 
 
 

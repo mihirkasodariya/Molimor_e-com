@@ -906,8 +906,10 @@ export async function getBigSalesProducts(req, res) {
 
             const productWithWishlist = {
                 ...product,
-                isWishList: !!isWishListExists
+                isWishList: !!isWishListExists,
+                image: product.image.map((img) => `/productImages/${img}`)
             };
+
 
             const start = new Date(product.startSaleOn);
             const end = new Date(product.endSaleOn);

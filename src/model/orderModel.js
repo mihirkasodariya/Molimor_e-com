@@ -16,11 +16,16 @@ const orderSchema = new Schema({
     discountType: { type: String },
   }],
   paymentMethod: { type: String, required: true },
-  shippingAddress: { type: Boolean, default: true },
+
+  shippingAddress: { type: [String], default: [] },
+  shippingCountry: { type: String, default: "" },
+  shippingState: { type: String, default: "" },
+  shippingPincode: { type: Number, default: "" },
+
+  streetAddress: { type: [String] },
   country: { type: String, required: true },
   state: { type: String, required: true },
   pincode: { type: Number, required: true },
-  streetAddress: { type: [String] },
   mobile: { type: String, required: true },
   email: { type: String, required: true },
   shippingCharge: { type: String, required: true },
@@ -85,7 +90,20 @@ const orderValidation = Joi.object({
     'any.only': 'Payment Method must be one of: Credit Card, Debit Card, PayPal, or Cash on Delivery',
     'any.required': 'Payment Method is required'
   }),
-  shippingAddress: Joi.boolean().default(false),
+
+    shippingAddress: Joi.array().items(Joi.string()).optional().messages({
+    'array.base': 'Shipping Address must be an array',
+    'string.base': 'Each address must be a string',
+  }),
+  shippingCountry: Joi.string().optional().messages({
+    'string.base': 'shippingCountry must be a string',
+  }),
+  shippingState: Joi.string().optional().messages({
+    'string.base': 'shippingState must be a string',
+  }),
+  shippingPincode: Joi.string().optional().messages({
+    'string.base': 'shippingPincode must be a string',
+  }),
   country: Joi.string().min(1).required().messages({
     'string.base': 'Country/Region must be a string',
     'string.min': 'Country/Region must be at least 1 characters',

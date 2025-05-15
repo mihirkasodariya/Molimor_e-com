@@ -88,11 +88,12 @@ const subscribeUserValidation = Joi.object({
 
 const emailShopNowButtonSchema = new Schema({
     url: { type: String, required: true },
-    isActive: { type: Boolean, default: true },
     image: { type: [String], default: [] }, 
+    for: { type: String, default: "" },
+    isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
-const shopNowEmailButtonModel = model('shop_now_email_button', emailShopNowButtonSchema);
+const shopNowEmailButtonModel = model('email_sends', emailShopNowButtonSchema);
 
 
 // const subscribeUserValidation = Joi.object({

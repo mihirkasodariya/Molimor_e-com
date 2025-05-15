@@ -594,8 +594,11 @@ export async function searchProduct(req, res) {
         }
         const productsWithWishlist = products.map(product => {
             const isWishlisted = wishlistProductIds.includes(product._id.toString());
+                const imagesWithPath = product.image.map(img => `/productImages/${img}`);
+
             return {
                 ...product._doc,
+                image : imagesWithPath,
                 isWishList: !!isWishlisted
             };
         });

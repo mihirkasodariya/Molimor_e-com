@@ -11,12 +11,13 @@ const { userModel } = userModelfile;
 import productModelfile from '../model/productModel.js';
 const { productModel } = productModelfile;
 import { Types } from 'mongoose';
-
+import cartMdl from '../model/cartModel.js';
+const { cartModel } = cartMdl
 export async function placeOrder(req, res) {
     const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCountry, shippingState, shippingPincode, shippingCharge, mobile, email, orderNote } = req.body;
 
     const { error } = orderValidation.validate(req.body);
-        if (error) {
+    if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error?.details[0].message);
     };
     try {
@@ -48,9 +49,9 @@ export async function placeOrder(req, res) {
             mobile,
             email,
             totalAmount,
-            orderNote : orderNote || ""
+            orderNote: orderNote || ""
         });
-console.log('order',order)
+        console.log('order', order)
         const fullName = `${fname} ${lname}`;
         const orderSummary = cartItems.slice(0, 2).map(i => `${i.quantity}x Item`).join(', ') + (cartItems.length > 2 ? '...' : '');
 
@@ -90,6 +91,10 @@ console.log('order',order)
                 orderNote,
                 orderSummary
             }
+        );
+        await cartModel.updateOne(
+            { userId: req.user.id },
+            { $pull: { items: { $in: productIds } } }
         );
 
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDER_PLACED, order);
@@ -141,7 +146,7 @@ export async function getOrderById(req, res) {
         if (!order) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
-        const user = await userModel.findById({ _id : order.userId}).select('-password');
+        const user = await userModel.findById({ _id: order.userId }).select('-password');
         const [convertedPrice, convertedMRP] = await Promise.all([
             convertPrice(order?.price, req?.currency),
             convertPrice(order?.mrp, req?.currency)
@@ -158,7 +163,7 @@ export async function getOrderById(req, res) {
         });
         const updatedOrder = {
             ...order._doc,
-            user : user,
+            user: user,
             price: convertedPrice,
             mrp: convertedMRP,
             items: updatedItems

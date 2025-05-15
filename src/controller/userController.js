@@ -353,7 +353,7 @@ export async function addSubscribeUser(req, res) {
             "subscribeEmail.ejs",
             email,
             "Thanks for Joining Molimor - You're Officially In",
-            `Hi ${fname}`,
+            `Hi`,
             data
         );
         };

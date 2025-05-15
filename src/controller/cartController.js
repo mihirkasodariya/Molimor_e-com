@@ -3,7 +3,8 @@ const { cartModel, cartValidation, updateCartValidation } = model;
 import response from '../utils/response.js';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
-
+import wishModel from '../model/wishlistModel.js'
+const {wishlistModel} = wishModel;
 export async function addToCart(req, res) {
     const { items, isActive, weight } = req.body;
     const { error } = cartValidation.validate(req.body);
@@ -113,3 +114,20 @@ export async function deleteCartByProductId(req, res) {
 };
 
 
+export async function getUserCartAndWishListCount(req, res) {
+    try {
+        const getUserCart = await cartModel.findOne({ userId: req.user.id }).populate("items.productId");
+        const cartItems = getUserCart?.items.filter(item => item?.isDelete === false);
+
+        const wishlist = await wishlistModel.findOne({ userId: req.user.id, isActive: true }).populate('items.productId');
+        const wishListItems = wishlist?.items.filter(item => item?.isDelete === false);
+        const resData = {
+           cart : cartItems?.length,
+           wishList : wishListItems?.length
+        }
+        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CART_FETCHED, resData);
+    } catch (error) {
+        console.error(error);
+        return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+    };
+};

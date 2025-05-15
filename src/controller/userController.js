@@ -344,7 +344,7 @@ export async function addSubscribeUser(req, res) {
             const getEmailShopNowButton = await shopNowEmailButtonModel?.findOne({ isActive: true, for:"subscribeEmail" });
 
         const data = {
-            name: fname,
+            // name: fname || "",
             productImage1: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[0],
             productImage2: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[1],
             shopNow: getEmailShopNowButton?.url,

@@ -94,7 +94,7 @@ export async function placeOrder(req, res) {
         );
         await cartModel.updateOne(
             { userId: req.user.id },
-            { $pull: { items: { $in: productIds } } }
+            { $pull: { items: { productId: { $in: productIds } } } }
         );
 
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDER_PLACED, order);

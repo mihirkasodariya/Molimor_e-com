@@ -4,9 +4,9 @@ import response from '../utils/response.js';
 import constants from '../utils/constants.js';
 const { resStatusCode, resMessage } = constants;
 import wishModel from '../model/wishlistModel.js'
-const {wishlistModel} = wishModel;
+const { wishlistModel } = wishModel;
 export async function addToCart(req, res) {
-    const { items, isActive, weight } = req.body;
+    const { items, isActive, weight, price, mrp } = req.body;
     const { error } = cartValidation.validate(req.body);
     if (error) {
         return response.error(res, req.languageCode, resStatusCode.CLIENT_ERROR, error.details[0].message);
@@ -18,11 +18,12 @@ export async function addToCart(req, res) {
                 const existingItem = existingCart.items.find(
                     item => item.productId.toString() === newItem.productId
                 );
-
                 if (existingItem) {
                     existingItem.quantity += newItem.quantity;
                     existingItem.isDelete = false;
                     existingItem.weight = newItem.weight;
+                    existingItem.price = newItem.price;
+                    existingItem.mrp = newItem.mrp;
                 } else {
                     existingCart.items.push(newItem);
                 };
@@ -56,7 +57,6 @@ export async function getUserCart(req, res) {
             if (product?.image?.length) {
                 product.image = product?.image.map(img => `/productImages/${img}`);
             };
-
             return item;
         });
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CART_FETCHED, updatedItems);
@@ -122,8 +122,8 @@ export async function getUserCartAndWishListCount(req, res) {
         const wishlist = await wishlistModel.findOne({ userId: req.user.id, isActive: true }).populate('items.productId');
         const wishListItems = wishlist?.items.filter(item => item?.isDelete === false);
         const resData = {
-           cart : cartItems?.length || 0,
-           wishList : wishListItems?.length || 0
+            cart: cartItems?.length || 0,
+            wishList: wishListItems?.length || 0
         }
         return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.CART_FETCHED, resData);
     } catch (error) {

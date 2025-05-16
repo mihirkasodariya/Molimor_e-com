@@ -98,21 +98,41 @@ export async function placeOrder(req, res) {
             { $pull: { items: { productId: { $in: productIds } } } }
         );
 
-console.log('orderedProductsorderedProducts', orderedProducts)
+        console.log('orderedProductsorderedProducts', orderedProducts)
         cartItems.forEach(p => {
             p.taxableValue = p.qty * p.unitPrice;
             p.amount = p.taxableValue;
-        });
-cartItems.forEach(cartItem => {
-    const matchedProduct = orderedProducts.find(prod => prod._id.toString() === cartItem.productId.toString());
-    if (matchedProduct) {
-        cartItem.name = matchedProduct.title;
-        cartItem.hsn = matchedProduct.hsnCode;
-        cartItem.gst = matchedProduct.gst;
 
-    }
-});
+        });
+        cartItems.forEach(cartItem => {
+            const matchedProduct = orderedProducts.find(prod => prod._id.toString() === cartItem.productId.toString());
+            if (matchedProduct) {
+                cartItem.name = matchedProduct.title;
+                cartItem.hsn = matchedProduct.hsnCode;
+                const gstRate = parseInt(matchedProduct.gst.replace('%', ''));
+                cartItem.gst = gstRate;
+                console.log('gstRate', gstRate)
+
+                const quantity = parseInt(cartItem.quantity);
+                console.log('qtyqty', quantity)
+                cartItem.quantity = quantity;
+
+
+                const price = parseInt(cartItem.price);
+                cartItem.price = price;
+
+                // const pricewithqyt = price * quantity;
+                // console.log('pricewithqyt', typeof(pricewithqyt))
+
+                const taxableValue = price + (price * gstRate) / 100;
+
+                console.log('cartItem.taxableValue', taxableValue)
+                cartItem.taxableValue = taxableValue;
+                cartItem.taxableValue = taxableValue;
+            }
+        });
         const taxableAmount = cartItems.reduce((sum, p) => sum + p.taxableValue, 0);
+
         const cgst = (taxableAmount * 0.09).toFixed(2);
         const sgst = (taxableAmount * 0.09).toFixed(2);
         const total = (taxableAmount + parseFloat(cgst) + parseFloat(sgst)).toFixed(2);
@@ -131,17 +151,17 @@ cartItems.forEach(cartItem => {
             cgst,
             sgst,
             total,
-            taxableAmount
+            taxableAmount : 54
         }
 
         await sendEmail(
             "billingInvoiceTemplate.ejs",
-            req?.user?.email,
+            "gifore2834@inkight.com",//req?.user?.email,
             "Molimor Purchase Invoice",
             `Hi ${fname}`,
             {
-                data,          
-                products: cartItems 
+                data,
+                products: cartItems
             });
 
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDER_PLACED, order);

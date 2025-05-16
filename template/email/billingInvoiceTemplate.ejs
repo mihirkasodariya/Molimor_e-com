@@ -1,0 +1,159 @@
+<link rel="stylesheet" href="https://unpkg.com/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+<!-- Invoice 1 - Bootstrap Brain Component -->
+<section class="py-3 py-md-5">
+  <div class="container" style="max-width: 1900px;">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-9 col-xl-8 col-xxl-7">
+        <div class="row gy-3 mb-3">
+          <div class="col-6">
+            <h2 class="text-uppercase text-endx m-0">Invoice</h2>
+          </div>
+          <div class="col-6">
+            <a class="d-block text-end" href="#!">
+              <img src="https://molimor-e-com.onrender.com/assets/molimor-logo.png" class="img-fluid"
+                alt="BootstrapBrain Logo" width="135" height="44">
+            </a>
+          </div>
+          <div class="col-12">
+            <h4>FROM</h4>
+            <address>
+              <strong>MOLIMOR PRIVATE LIMITED</strong><br>
+              EKTA INDUSTRIAL ESTATE <br>BLOCK NO.26, PN NO.1023 <br> PIPODARA, SURAT, GUJARAT, <br>394110, INDIA<br>
+              Phone: +91 90811 11299<br>
+              Email: info@molimor.co
+            </address>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-12 col-sm-6 col-md-8">
+            <h4>BILL TO</h4>
+            <address>
+              <strong>
+                <%= data.custName %>
+              </strong><br>
+              <%= data.addressLine %><br>
+                <%= data.city %>, <%= data.state %>, <%= data.zip %><br>
+                      <%= data.country %><br>
+                        Phone: <%= data.phone %><br>
+                          Email: <%= data.email %>
+
+            </address>
+          </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <h4 class="row">
+              <span class="col-6">Invoice #</span>
+              <span class="col-6 text-sm-end">INT-<%= data.invoiceCount %></span>
+            </h4>
+            <div class="row">
+              <!-- <span class="col-6">Account</span>
+              <span class="col-6 text-sm-end">786-54984</span> -->
+              <span class="col-6">Order ID</span>
+              <span class="col-6 text-sm-end">#<%= data.orderId %></span>
+              <span class="col-6">Invoice Date</span>
+              <span class="col-6 text-sm-end">
+                <%= data.invoiceDate %>
+              </span>
+              <span class="col-6">Due Date</span>
+              <span class="col-6 text-sm-end">
+                <%= data.dueDate %>
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-12">
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th scope="col" class="text-uppercase">Sr.</th>
+                    <th scope="col" class="text-uppercase">Product Name</th>
+                    <th scope="col" class="text-uppercase">HSN</th>
+                    <th scope="col" class="text-uppercase text-end">Rate</th>
+                    <th scope="col" class="text-uppercase">Qty</th>
+                    <th scope="col" class="text-uppercase">Taxable Amount</th>
+                    <th scope="col" class="text-uppercase">GST %</th>
+                    <th scope="col" class="text-uppercase text-end">Amount</th>
+                  </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                  <% let subtotal=0; products.forEach((product, index)=> {
+                    const taxableValue = product.quantity * product.price
+                    subtotal += taxableValue;
+                    %>
+                    <tr>
+                      <th scope="row">
+                        <%= index + 1 %>
+                      </th>
+                      <td>
+                        <%= product.name %>
+                      </td>
+                      <td>
+                        <%= product.hsn %>
+                      </td>
+                      <td class="text-end">
+                        <%= product.price %>
+                      </td>
+                      <td>
+                        <%= product.quantity %>
+                      </td>
+                      <td>
+                        <%= product.taxableValue.toFixed(2) %>
+                      </td> <!-- Use calculated value -->
+                            <td><%= product.gst%>%</td> <!-- Assuming this is available -->
+
+                      <td class="text-end">
+                        <%= (product.taxableValue + (product.cgst || 0) + (product.sgst || 0)).toFixed(2) %>
+                      </td> <!-- or your amount logic -->
+                    </tr>
+                    <% }) %>
+
+                      <% data.subtotal=subtotal; data.shipping=15; data.taxableAmount=subtotal;
+                        data.cgst=data.taxableAmount * 0.09; data.sgst=data.taxableAmount * 0.09;
+                        data.total=data.taxableAmount + data.cgst + data.sgst + data.shipping; %>
+
+                        <tr>
+                          <td colspan="5"></td>
+                          <td class="text-start"><strong>Taxable Amount</strong></td>
+                          <td colspan="5" class="text-end">
+                            <%= data.taxableAmount.toFixed(2) %>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colspan="5"></td>
+                          <td class="text-start"><strong>CGST</strong></td>
+                          <td colspan="5" class="text-end">
+                            <%= data.cgst.toFixed(2) %>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colspan="5"></td>
+                          <td class="text-start"><strong>SGST</strong></td>
+                          <td colspan="5" class="text-end">
+                            <%= data.sgst.toFixed(2) %>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td colspan="5"></td>
+                          <th class="text-start text-uppercase">Total</th>
+                          <td colspan="5" class="text-end">$<%= data.total.toFixed(2) %>
+                          </td>
+                        </tr>
+                </tbody>
+
+              </table>
+            </div>
+           
+          </div>
+        </div>
+        <!-- <div class="row">
+          <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary mb-3">Download Invoice</button>
+            <button type="submit" class="btn btn-danger mb-3">Submit Payment</button>
+          </div>
+        </div> -->
+      </div>
+    </div>
+  </div>
+</section>

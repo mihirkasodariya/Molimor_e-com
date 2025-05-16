@@ -5,7 +5,9 @@ const { Schema } = mongoose;
 const cartItemSchema = new Schema({
     productId: { type: _Schema.Types.ObjectId, ref: 'products', required: true },
     quantity: { type: Number, required: true, default: 1 },
-    weight: { type: String, default: '' },
+    weight: { type: String, default: ''},
+    price: { type: Number },
+    mrp: { type: Number },
     isDelete: { type: Boolean, default: false }
 }, { timestamps: true })
 
@@ -26,6 +28,14 @@ const cartItemValidation = Joi.object({
     quantity: Joi.number().integer().messages({
         'number.base': 'Quantity must be a number',
         'number.min': 'Quantity must be at least 1'
+    }),
+    price: Joi.number().integer().messages({
+        'number.base': 'price must be a number',
+        'number.min': 'price must be at least 1'
+    }),
+    mrp: Joi.number().integer().messages({
+        'number.base': 'price must be a number',
+        'number.min': 'price must be at least 1'
     }),
     weight: Joi.string().default(''),
     isDelete: Joi.boolean().default(false)

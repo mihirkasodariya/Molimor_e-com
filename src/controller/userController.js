@@ -45,7 +45,7 @@ export async function register(req, res) {
             productImage2: process.env.IMAGE_PATH + "/aboutusImage/" + getEmailShopNowButton?.image[1],
             shopNow: getEmailShopNowButton?.url,
         };
-        const mail = await sendEmail(
+        await sendEmail(
             "welcomeEmailTemplate.ejs",
             email,
             "Welcome to Molimor",
@@ -126,7 +126,7 @@ export async function profile(req, res) {
 
 export async function updateProfile(req, res) {
     try {
-        const { fname, lname, mobile, gender, address } = req.body;
+        const { fname, lname, mobile, gender, address, country, state, pincode } = req.body;
         const user = await userModel.findById({ _id: req.user.id });
         const updatedUser = await userModel.findByIdAndUpdate(
             req.user.id,
@@ -137,6 +137,9 @@ export async function updateProfile(req, res) {
                     mobile: mobile ?? user?.mobile,
                     gender: gender ?? user?.gender,
                     address: address ?? user?.address,
+                    country: country ?? user?.country,
+                    state: state ?? user?.state,
+                    pincode: pincode ?? user?.pincode,
                     profilePhoto: req.file?.filename ?? user?.profilePhoto
                 }
             },

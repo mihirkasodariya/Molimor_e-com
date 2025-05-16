@@ -22,17 +22,26 @@ const { wishlistModel } = wishModel;
 
 
 export async function addSingleProduct(req, res) {
-    const { title, isFeatured, weight, price, mrp, isSale, salePrice, startSaleOn, endSaleOn, description, benefits, categoryId, image, sku, hsnCode, gst, stock, quantity, isActive } = req.body;
+    const { title, isFeatured, variants, isSale, salePrice, startSaleOn, endSaleOn, description, benefits, categoryId, image, sku, hsnCode, gst, stock, quantity, isActive } = req.body;
+    let parsedVariants = [];
+    parsedVariants = typeof variants === 'string' ? JSON.parse(variants) : variants;
+
     let isFeaturedConvertArry = [];
-    let weightArry = [];
     if (isFeatured && typeof isFeatured === 'string') {
         isFeaturedConvertArry = isFeatured.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
     };
-    if (weight && typeof weight === 'string') {
-        weightArry = weight.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
-    };
+    console.log('variants', parsedVariants)
+    // if (weight && typeof weight === 'string') {
+    //     weightArry = weight.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
+    // };
     req.body.isFeatured = isFeaturedConvertArry;
-    req.body.weight = weightArry;
+    // req.body.weight = weightArry;
+    let variantsArry = [];
+    parsedVariants.forEach(variant => {
+        console.log(variant.weight, variant.price, variant.mrp);
+        variantsArry.push(variant);
+    });
+    req.body.variants = variantsArry;
 
     const { error } = productValidation.validate(req.body);
     if (error) {
@@ -48,7 +57,7 @@ export async function addSingleProduct(req, res) {
         const fileNames = req?.files?.image?.map(file => file.filename);
         const createnewProduct = new productModel({
             ...req.body,
-            gst : gst + "%",
+            gst: gst + "%",
             image: fileNames
         });
         await createnewProduct.save();
@@ -216,201 +225,218 @@ export async function addSingleProduct(req, res) {
 //         return response.error(res, req?.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
 //     };
 // };
-
+// added gtp 
 export async function getAllProductsList(req, res) {
-    try {
-        const {
-            category,
-            status,
-            minPrice,
-            maxPrice,
-            review,
-            minWeight,
-            maxWeight,
-            page = 1,
-            limit = 10
-        } = req.query;
+  try {
+    const {
+      category,
+      status,
+      minPrice,
+      maxPrice,
+      review,
+      minWeight,
+      maxWeight,
+      page = 1,
+      limit = 10,
+      userId
+    } = req.query;
 
-        const filter = {
-            isActive: true,
-            isDelete: false
-        };
+    const filter = {
+      isActive: true,
+      isDelete: false
+    };
 
-        // Rating filter
-        if (review) {
-            const ratingValue = parseFloat(review);
-            if (ratingValue >= 1 && ratingValue <= 5) {
-                const reviewedProducts = await reviewModel.aggregate([
-                    { $match: { isActive: true } },
-                    {
-                        $group: {
-                            _id: "$productId",
-                            averageRating: { $avg: "$rating" }
-                        }
-                    },
-                    { $match: { averageRating: { $gte: ratingValue } } }
-                ]);
-                const matchingProductIds = reviewedProducts.map(item => item._id);
-                filter._id = { $in: matchingProductIds };
+    // 1. Apply review filter (product IDs with avg rating >= review)
+    if (review) {
+      const ratingValue = parseFloat(review);
+      if (ratingValue >= 1 && ratingValue <= 5) {
+        const reviewedProducts = await reviewModel.aggregate([
+          { $match: { isActive: true } },
+          {
+            $group: {
+              _id: "$productId",
+              averageRating: { $avg: "$rating" }
             }
-        }
-
-        // Category filter
-        if (category) {
-            const categoryDoc = await categoryModel.findOne({ name: category });
-            if (categoryDoc) {
-                filter.categoryId = categoryDoc._id;
-            }
-        }
-
-        // Stock filter
-        if (status === 'instock') {
-            filter.quantity = { $gt: 0 };
-        } else if (status === 'outofstock') {
-            filter.quantity = 0;
-        }
-
-        // Base products list
-        let productsQuery = productModel.find(filter);
-
-        // Weight filter
-        if (minWeight || maxWeight) {
-            const weightPipeline = [
-                { $match: filter },
-                {
-                    $addFields: {
-                        numericWeight: {
-                            $toInt: {
-                                $arrayElemAt: [
-                                    {
-                                        $split: [
-                                            { $arrayElemAt: ['$weight', 0] },
-                                            'g'
-                                        ]
-                                    },
-                                    0
-                                ]
-                            }
-                        }
-                    }
-                },
-                {
-                    $match: {
-                        numericWeight: {
-                            ...(minWeight ? { $gte: parseInt(minWeight) } : {}),
-                            ...(maxWeight ? { $lte: parseInt(maxWeight) } : {})
-                        }
-                    }
-                },
-                { $sort: { createdAt: -1 } },
-                { $skip: (page - 1) * limit },
-                { $limit: parseInt(limit) },
-                {
-                    $lookup: {
-                        from: 'categorys',
-                        localField: 'categoryId',
-                        foreignField: '_id',
-                        as: 'category'
-                    }
-                },
-                { $unwind: { path: '$category', preserveNullAndEmptyArrays: true } },
-                {
-                    $lookup: {
-                        from: 'sale_products',
-                        localField: '_id',
-                        foreignField: 'productId',
-                        as: 'salesInfo'
-                    }
-                },
-                { $unwind: { path: '$salesInfo', preserveNullAndEmptyArrays: true } }
-            ];
-
-            const weightFilteredProducts = await productModel.aggregate(weightPipeline);
-
-            const converted = await Promise.all(weightFilteredProducts.map(async (product) => {
-                const [convertedPrice, convertedMRP] = await Promise.all([
-                    convertPrice(product.price, req.currency),
-                    convertPrice(product.mrp, req.currency)
-                ]);
-                return {
-                    ...product,
-                    price: convertedPrice,
-                    mrp: convertedMRP,
-                    currency: req.currency,
-                    image: product.image?.[0] ? `/productImages/${product.image[0]}` : null,
-                    stockStatus: product.quantity > 0 ? 'instock' : 'outofstock'
-                };
-            }));
-
-            return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, {
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalRecords: converted.length,
-                totalPages: 1,
-                products: converted
-            });
-        }
-
-        const hasMinPrice = minPrice !== undefined && minPrice !== 'undefined';
-        const hasMaxPrice = maxPrice !== undefined && maxPrice !== 'undefined';
-
-        const allProducts = await productModel.find(filter).populate('categoryId');
-        const priceFiltered = [];
-
-        for (const product of allProducts) {
-            const convertedPrice = await convertPrice(product.price, req.currency);
-            const price = parseFloat(convertedPrice);
-
-            if ((!hasMinPrice || price >= parseFloat(minPrice)) &&
-                (!hasMaxPrice || price <= parseFloat(maxPrice))) {
-                priceFiltered.push(product);
-            }
-        }
-
-        if (!priceFiltered.length) {
-            return response.success(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_PRODUCTS_FOUND, {});
-        }
-
-        const paginated = priceFiltered.slice((page - 1) * limit, (page - 1) * limit + parseInt(limit));
-
-        const convertedProducts = await Promise.all(paginated.map(async (product) => {
-            const [convertedPrice, convertedMRP] = await Promise.all([
-                convertPrice(product.price, req.currency),
-                convertPrice(product.mrp, req.currency)
-            ]);
-            let isWishListExists = false
-            if (req?.query?.userId) {
-                isWishListExists = await wishlistModel.findOne({
-                    userId: req?.query?.userId,
-                    'items.productId': product._id,
-                    isActive: true
-                }).populate('items.productId');
-            };
-            return {
-                ...product._doc,
-                isWishList: !!isWishListExists,
-                price: convertedPrice,
-                mrp: convertedMRP,
-                currency: req.currency,
-                image: product.image?.[0] ? `/productImages/${product.image[0]}` : null,
-                stockStatus: product.quantity > 0 ? 'instock' : 'outofstock'
-            };
-
-        }));
-
-        return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, {
-            page: parseInt(page),
-            limit: parseInt(limit),
-            totalRecords: priceFiltered.length,
-            totalPages: Math.ceil(priceFiltered.length / parseInt(limit)),
-            products: convertedProducts
-        });
-
-    } catch (error) {
-        console.error('Error in getAllProductsList:', error);
-        return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+          },
+          { $match: { averageRating: { $gte: ratingValue } } }
+        ]);
+        const matchingProductIds = reviewedProducts.map(item => item._id);
+        filter._id = { $in: matchingProductIds };
+      }
     }
+
+    // 2. Category filter
+    if (category) {
+      const categoryDoc = await categoryModel.findOne({ name: category });
+      if (categoryDoc) {
+        filter.categoryId = categoryDoc._id;
+      }
+    }
+
+    // 3. Stock filter
+    if (status === 'instock') {
+      filter.quantity = { $gt: 0 };
+    } else if (status === 'outofstock') {
+      filter.quantity = 0;
+    }
+
+    // --- Build aggregation pipeline ---
+    const pipeline = [
+      { $match: filter },
+
+      // Unwind variants for filtering on variants.weight and variants.price
+      { $unwind: '$variants' },
+
+      // Convert variants.weight from string like "230g" to integer numericWeight
+      {
+        $addFields: {
+          numericWeight: {
+            $toInt: {
+              $arrayElemAt: [
+                { $split: ['$variants.weight', 'g'] },
+                0
+              ]
+            }
+          }
+        }
+      }
+    ];
+
+    // 4. Weight filter on variants.weight
+    if (minWeight || maxWeight) {
+      pipeline.push({
+        $match: {
+          numericWeight: {
+            ...(minWeight ? { $gte: parseInt(minWeight) } : {}),
+            ...(maxWeight ? { $lte: parseInt(maxWeight) } : {})
+          }
+        }
+      });
+    }
+
+    // 5. Price filter on variants.price (note: price is a Number)
+    const minPriceNum = minPrice !== undefined && minPrice !== 'undefined' ? parseFloat(minPrice) : null;
+    const maxPriceNum = maxPrice !== undefined && maxPrice !== 'undefined' ? parseFloat(maxPrice) : null;
+
+    if (minPriceNum !== null || maxPriceNum !== null) {
+      // If you want to filter based on converted price, you need to convert price here
+      // but conversion is async (e.g. currency conversion), so for now, filter on stored price directly
+      pipeline.push({
+        $match: {
+          'variants.price': {
+            ...(minPriceNum !== null ? { $gte: minPriceNum } : {}),
+            ...(maxPriceNum !== null ? { $lte: maxPriceNum } : {})
+          }
+        }
+      });
+    }
+
+    // 6. Sort, Pagination
+    pipeline.push(
+      { $sort: { createdAt: -1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: parseInt(limit) }
+    );
+
+    // 7. Lookup category details
+    pipeline.push({
+      $lookup: {
+        from: 'categorys',
+        localField: 'categoryId',
+        foreignField: '_id',
+        as: 'category'
+      }
+    });
+    pipeline.push({ $unwind: { path: '$category', preserveNullAndEmptyArrays: true } });
+
+    // 8. Lookup sale_products info
+    pipeline.push({
+      $lookup: {
+        from: 'sale_products',
+        localField: '_id',
+        foreignField: 'productId',
+        as: 'salesInfo'
+      }
+    });
+    pipeline.push({ $unwind: { path: '$salesInfo', preserveNullAndEmptyArrays: true } });
+
+    // 9. Group back by product _id to reconstruct variants array (optional)
+    //    Or you can keep it unwound if you want to return product+variant per document
+
+    // Let's group to reconstruct product with filtered variants
+    pipeline.push({
+      $group: {
+        _id: '$_id',
+        doc: { $first: '$$ROOT' },
+        variants: { $push: '$variants' }
+      }
+    });
+
+    pipeline.push({
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: ['$doc', { variants: '$variants' }]
+        }
+      }
+    });
+
+    // Execute pipeline
+    const filteredProducts = await productModel.aggregate(pipeline);
+
+    if (!filteredProducts.length) {
+      return response.success(res, req.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_PRODUCTS_FOUND, {});
+    }
+
+    // 10. Convert prices async & add wishlist info
+    const convertedProducts = await Promise.all(filteredProducts.map(async product => {
+      // Choose variant with lowest price for display (or modify as needed)
+      const variantToShow = product.variants[0];
+
+      const [convertedPrice, convertedMRP] = await Promise.all([
+        convertPrice(variantToShow.price, req.currency),
+        convertPrice(variantToShow.mrp, req.currency)
+      ]);
+
+      let isWishListExists = false;
+      if (userId) {
+        isWishListExists = await wishlistModel.findOne({
+          userId,
+          'items.productId': product._id,
+          isActive: true
+        }).populate('items.productId');
+      }
+
+      return {
+        ...product,
+        price: convertedPrice,
+        mrp: convertedMRP,
+        currency: req.currency,
+        variants: product.variants,
+        image: product.image?.[0] ? `/productImages/${product.image[0]}` : null,
+        stockStatus: product.quantity > 0 ? 'instock' : 'outofstock',
+        isWishList: !!isWishListExists,
+        category: product.category
+      };
+    }));
+
+    // 11. Count total records for pagination (if you want exact total, run separate count pipeline without $skip/$limit)
+    // Here you can run a count pipeline without $skip/$limit to get total count for frontend pagination
+    // But for simplicity, use filteredProducts.length as total count for current page only
+
+    return response.success(res, req.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.PRODUCTS_RETRIEVED, {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      totalRecords: convertedProducts.length, // replace with total count if implemented
+      totalPages: 1, // replace with total pages if total count implemented
+      products: convertedProducts
+    });
+
+  } catch (error) {
+    console.error('Error in getAllProductsList:', error);
+    return response.error(res, req.languageCode, resStatusCode.INTERNAL_SERVER_ERROR, resMessage.INTERNAL_SERVER_ERROR, {});
+  }
 }
+
 
 export async function getAllAdminProductsList(req, res) {
     try {
@@ -447,10 +473,10 @@ export async function getProductById(req, res) {
         if (!product) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_PRODUCTS_FOUND, {});
         };
-        const [convertedPrice, convertedMRP] = await Promise.all([
-            convertPrice(product.price, req.currency),
-            convertPrice(product.mrp, req.currency)
-        ]);
+        // const [convertedPrice, convertedMRP] = await Promise.all([
+        //     convertPrice(product.price, req.currency),
+        //     convertPrice(product.mrp, req.currency)
+        // ]);
         let isWishListExists = false
         if (req?.query?.userId) {
             isWishListExists = await wishlistModel.findOne({
@@ -462,8 +488,8 @@ export async function getProductById(req, res) {
         const updatedProduct = {
             ...product._doc,
             isWishList: !!isWishListExists,
-            price: parseFloat(convertedPrice),
-            mrp: parseFloat(convertedMRP),
+            // price: parseFloat(convertedPrice),
+            // mrp: parseFloat(convertedMRP),
             currency: req.currency,
             image: Array.isArray(product.image) ? product?.image.map(img => `/productImages/${img}`) : []
         };
@@ -476,9 +502,9 @@ export async function getProductById(req, res) {
 
 export async function updateSingleProduct(req, res) {
     const { id } = req.params;
-
+    let variants = req.body.variants;
     let isFeaturedConvertArry = [];
-    let weightArry = [];
+    // let weightArry = [];
     if (req.body.isFeatured && typeof req.body.isFeatured === 'string') {
         isFeaturedConvertArry = req.body.isFeatured
             .replace(/[\[\]\s]+/g, '')
@@ -486,11 +512,20 @@ export async function updateSingleProduct(req, res) {
             .map(item => item.trim());
         req.body.isFeatured = isFeaturedConvertArry;
     };
-    console.log('req.body?.weight', req.body?.weight)
-    if (req.body?.weight && typeof req.body?.weight === 'string') {
-        weightArry = req.body?.weight.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
-    };
-    req.body.weight = weightArry;
+    // console.log('req.body?.weight', req.body?.weight)
+    // if (req.body?.weight && typeof req.body?.weight === 'string') {
+    // weightArry = req.body?.weight.replace(/[\[\]\s]+/g, '').split(',').map(item => item.trim());
+    // };
+    let variantsArry = [];
+    let parsedVariants = [];
+    parsedVariants = typeof variants === 'string' ? JSON.parse(variants) : variants;
+
+    parsedVariants.forEach(variant => {
+        console.log(variant.weight, variant.price, variant.mrp);
+        variantsArry.push(variant);
+    });
+    req.body.variants = parsedVariants;
+    // req.body.weight = weightArry;
 
     const { error } = updateProductValidation.validate(req.body);
     if (error) {
@@ -595,11 +630,11 @@ export async function searchProduct(req, res) {
         }
         const productsWithWishlist = products.map(product => {
             const isWishlisted = wishlistProductIds.includes(product._id.toString());
-                const imagesWithPath = product.image.map(img => `/productImages/${img}`);
+            const imagesWithPath = product.image.map(img => `/productImages/${img}`);
 
             return {
                 ...product._doc,
-                image : imagesWithPath,
+                image: imagesWithPath,
                 isWishList: !!isWishlisted
             };
         });
@@ -854,9 +889,10 @@ export async function getBigSalesProducts(req, res) {
                 $group: {
                     _id: "$_id",
                     title: { $first: "$title" },
-                    weight: { $first: "$weight" },
-                    price: { $first: "$price" },
-                    mrp: { $first: "$mrp" },
+                    // weight: { $first: "$weight" },
+                    // price: { $first: "$price" },
+                    // mrp: { $first: "$mrp" },
+                    variants: { $first: "$variants" },
                     image: { $first: "$image" },
                     sku: { $first: "$sku" },
                     stock: { $first: "$stock" },
@@ -875,9 +911,10 @@ export async function getBigSalesProducts(req, res) {
                 $project: {
                     _id: 1,
                     title: 1,
-                    weight: 1,
-                    price: 1,
-                    mrp: 1,
+                    // weight: 1,
+                    // price: 1,
+                    // mrp: 1,
+                    variants:1,
                     image: 1,
                     sku: 1,
                     stock: 1,

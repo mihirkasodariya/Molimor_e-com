@@ -11,6 +11,9 @@ const userRegisterSchema = new Schema({
     gender: { type: String, default: "" },
     profilePhoto: { type: String, default: "" },
     address: { type: String, default: "" },
+    country: { type: String, default: "" },
+    state: { type: String, default: "" },
+    pincode: { type: Number},
     fcm: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
     role: { type: String, required: true, default: "user" }
@@ -71,24 +74,24 @@ const googleOAuthValidation = Joi.object({
 
 const subscribeUserSchema = new Schema({
     email: { type: String, required: true },
-    isRegistered: { type: Boolean},
+    isRegistered: { type: Boolean },
     isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 const subscribeUserModel = model('subscribe_users', subscribeUserSchema);
 
 const subscribeUserValidation = Joi.object({
-  email: Joi.string().email().required().messages({
-    'string.empty': 'Email is required.',
-    'string.email': 'Invalid email format.'
-  }),
-  isActive: Joi.boolean().optional(),
+    email: Joi.string().email().required().messages({
+        'string.empty': 'Email is required.',
+        'string.email': 'Invalid email format.'
+    }),
+    isActive: Joi.boolean().optional(),
 });
 
 
 const emailShopNowButtonSchema = new Schema({
     url: { type: String, required: true },
-    image: { type: [String], default: [] }, 
+    image: { type: [String], default: [] },
     for: { type: String, default: "" },
     isActive: { type: Boolean, default: true },
 }, { timestamps: true });

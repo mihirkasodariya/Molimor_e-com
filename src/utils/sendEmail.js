@@ -10,17 +10,24 @@ const __dirname = path.dirname(__filename);
 export async function sendEmail(templateName, email, subject, text, data = {}) {
     try {
         const templatePath = path.join(__dirname, `../../template/email/${templateName}`);
-        const htmlContent = await ejs.renderFile(templatePath, {
-            email,
-            subject,
-            text,
-            data
-            // name: data.name,
-            // shopNow: data.url,
-            // productImage1: data.image1,
-            // productImage2: data.image2,
-        });
-
+        let htmlContent;
+        if (templateName == "welcomeEmailTemplate.ejs") {
+            htmlContent = await ejs.renderFile(templatePath, {
+                email,
+                subject,
+                text,
+                data
+            });
+        } else if (templateName == "billingInvoiceTemplate.ejs") {
+            console.log('data',data.products)
+            htmlContent = await ejs.renderFile(templatePath, {
+                email,
+                subject,
+                text,
+                data : data.data,
+                products : data.products
+            },{ async: true });
+        };
         const response = await axios.post(
             'https://api.mailersend.com/v1/email',
             {

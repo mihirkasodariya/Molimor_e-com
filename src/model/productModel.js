@@ -5,10 +5,18 @@ const { Schema } = mongoose;
 const productSchema = new Schema({
     title: { type: String, required: true },
     isFeatured: { type: [String], required: true },
-    weight: { type: [String], required: true },
-    price: { type: Number, required: true },
-    mrp: { type: Number, required: true },
+    // weight: { type: [String], required: true },
+    // price: { type: Number, required: true },
+    // mrp: { type: Number, required: true },
     // salePrice: { type: Number },
+    variants: [
+        {
+            _id: false,
+            weight: { type: String, required: true },
+            price: { type: Number, required: true },
+            mrp: { type: Number, required: true },
+        }
+    ],
     description: { type: String, required: true },
     benefits: { type: String, required: true },
     categoryId: { type: _Schema.Types.ObjectId, ref: 'categorys' },
@@ -24,6 +32,22 @@ const productSchema = new Schema({
 }, { timestamps: true });
 
 const productModel = model('products', productSchema);
+
+const variantSchema = Joi.object({
+    weight: Joi.string().required().messages({
+        'string.base': 'Weight must be a string',
+        'string.empty': 'Weight is required',
+        'any.required': 'Weight is required',
+    }),
+    price: Joi.number().required().messages({
+        'number.base': 'Price must be a number',
+        'any.required': 'Price is required',
+    }),
+    mrp: Joi.number().required().messages({
+        'number.base': 'MRP must be a number',
+        'any.required': 'MRP is required',
+    }),
+});
 
 // addProduct
 const productValidation = Joi.object({
@@ -45,29 +69,39 @@ const productValidation = Joi.object({
             'string.empty': 'Each value in Is Featured must be a non-empty string',
             'string.base': 'Each value in Is Featured must be a string',
         }),
-    weight: Joi.array()
-        .items(
-            Joi.string().required().messages({
-                'string.base': 'Each weight must be a string',
-                'any.required': 'Each weight is required',
-            })
-        )
+    variants: Joi.array()
+        .items(variantSchema)
+        .min(1)
         .required()
         .messages({
-            'array.base': 'Weight must be an array of string',
-            'array.includesRequiredUnknowns': 'Weight array must include at least one string',
-            'any.required': 'Weight is required',
+            'array.base': 'Variants must be an array',
+            'array.min': 'At least one variant is required',
+            'any.required': 'Variants are required',
         }),
-    price: Joi.number().positive().required().messages({
-        'number.base': 'Price must be a number',
-        'number.positive': 'Price must be greater than 0',
-        'any.required': 'Price is required',
-    }),
-    mrp: Joi.number().positive().required().messages({
-        'number.base': 'MRP must be a number',
-        'number.positive': 'MRP must be greater than 0',
-        'any.required': 'MRP is required',
-    }),
+
+    // weight: Joi.array()
+    //     .items(
+    //         Joi.string().required().messages({
+    //             'string.base': 'Each weight must be a string',
+    //             'any.required': 'Each weight is required',
+    //         })
+    //     )
+    //     .required()
+    //     .messages({
+    //         'array.base': 'Weight must be an array of string',
+    //         'array.includesRequiredUnknowns': 'Weight array must include at least one string',
+    //         'any.required': 'Weight is required',
+    //     }),
+    // price: Joi.number().positive().required().messages({
+    //     'number.base': 'Price must be a number',
+    //     'number.positive': 'Price must be greater than 0',
+    //     'any.required': 'Price is required',
+    // }),
+    // mrp: Joi.number().positive().required().messages({
+    //     'number.base': 'MRP must be a number',
+    //     'number.positive': 'MRP must be greater than 0',
+    //     'any.required': 'MRP is required',
+    // }),
     // salePrice: Joi.number().optional().messages({
     //     'number.base': 'Sale price must be a number',
     // }),
@@ -166,29 +200,38 @@ const updateProductValidation = Joi.object({
             'string.empty': 'Each value in Is Featured must be a non-empty string',
             'string.base': 'Each value in Is Featured must be a string',
         }),
-    weight: Joi.array()
-        .items(
-            Joi.string().required().messages({
-                'string.base': 'Each weight must be a string',
-                'any.required': 'Each weight is required',
-            })
-        )
+    // weight: Joi.array()
+    //     .items(
+    //         Joi.string().required().messages({
+    //             'string.base': 'Each weight must be a string',
+    //             'any.required': 'Each weight is required',
+    //         })
+    //     )
+    //     .required()
+    //     .messages({
+    //         'array.base': 'Weight must be an array of string',
+    //         'array.includesRequiredUnknowns': 'Weight array must include at least one string',
+    //         'any.required': 'Weight is required',
+    //     }),
+    // price: Joi.number().positive().required().messages({
+    //     'number.base': 'Price must be a number',
+    //     'number.positive': 'Price must be greater than 0',
+    //     'any.required': 'Price is required',
+    // }),
+    // mrp: Joi.number().positive().required().messages({
+    //     'number.base': 'MRP must be a number',
+    //     'number.positive': 'MRP must be greater than 0',
+    //     'any.required': 'MRP is required',
+    // }),
+     variants: Joi.array()
+        .items(variantSchema)
+        .min(1)
         .required()
         .messages({
-            'array.base': 'Weight must be an array of string',
-            'array.includesRequiredUnknowns': 'Weight array must include at least one string',
-            'any.required': 'Weight is required',
+            'array.base': 'Variants must be an array',
+            'array.min': 'At least one variant is required',
+            'any.required': 'Variants are required',
         }),
-    price: Joi.number().positive().required().messages({
-        'number.base': 'Price must be a number',
-        'number.positive': 'Price must be greater than 0',
-        'any.required': 'Price is required',
-    }),
-    mrp: Joi.number().positive().required().messages({
-        'number.base': 'MRP must be a number',
-        'number.positive': 'MRP must be greater than 0',
-        'any.required': 'MRP is required',
-    }),
     description: Joi.string().required().messages({
         'string.base': 'Description must be a string',
         'string.empty': 'Description is required',
@@ -211,7 +254,7 @@ const updateProductValidation = Joi.object({
     endSaleOn: Joi.date().optional().messages({
         'date.base': 'endSaleOn must be a valid date',
     }),
-     hsnCode: Joi.string().required().messages({
+    hsnCode: Joi.string().required().messages({
         'string.base': 'hsnCode must be a string',
         'string.empty': 'hsnCode is required',
         'any.required': 'hsnCode is required',

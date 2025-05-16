@@ -20,7 +20,7 @@ const orderSchema = new Schema({
   shippingAddress: { type: [String], default: [] },
   shippingCountry: { type: String, default: "" },
   shippingState: { type: String, default: "" },
-  shippingPincode: { type: Number, default: "" },
+  shippingPincode: { type: String },
 
   streetAddress: { type: [String] },
   country: { type: String, required: true },
@@ -91,7 +91,7 @@ const orderValidation = Joi.object({
     'any.required': 'Payment Method is required'
   }),
 
-    shippingAddress: Joi.array().items(Joi.string()).optional().messages({
+  shippingAddress: Joi.array().items(Joi.string()).optional().messages({
     'array.base': 'Shipping Address must be an array',
     'string.base': 'Each address must be a string',
   }),

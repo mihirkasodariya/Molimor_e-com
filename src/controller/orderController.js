@@ -13,6 +13,7 @@ const { productModel } = productModelfile;
 import { Types } from 'mongoose';
 import cartMdl from '../model/cartModel.js';
 const { cartModel } = cartMdl
+import { sendEmail } from '../utils/sendEmail.js'
 export async function placeOrder(req, res) {
     const { fname, lname, cartItems, paymentMethod, streetAddress, country, state, pincode, shippingAddress, shippingCountry, shippingState, shippingPincode, shippingCharge, mobile, email, orderNote } = req.body;
 
@@ -55,7 +56,7 @@ export async function placeOrder(req, res) {
         const fullName = `${fname} ${lname}`;
         const orderSummary = cartItems.slice(0, 2).map(i => `${i.quantity}x Item`).join(', ') + (cartItems.length > 2 ? '...' : '');
 
-        const adminFcmToken = await userModel.findById({ _id: req.user.id });
+        const adminFcmToken = await userModel.findOne({ role: 'admin' });
 
         const productIds = cartItems.map(item => new Types.ObjectId(item.productId));
 
@@ -96,6 +97,52 @@ export async function placeOrder(req, res) {
             { userId: req.user.id },
             { $pull: { items: { productId: { $in: productIds } } } }
         );
+
+console.log('orderedProductsorderedProducts', orderedProducts)
+        cartItems.forEach(p => {
+            p.taxableValue = p.qty * p.unitPrice;
+            p.amount = p.taxableValue;
+        });
+cartItems.forEach(cartItem => {
+    const matchedProduct = orderedProducts.find(prod => prod._id.toString() === cartItem.productId.toString());
+    if (matchedProduct) {
+        cartItem.name = matchedProduct.title;
+        cartItem.hsn = matchedProduct.hsnCode;
+        cartItem.gst = matchedProduct.gst;
+
+    }
+});
+        const taxableAmount = cartItems.reduce((sum, p) => sum + p.taxableValue, 0);
+        const cgst = (taxableAmount * 0.09).toFixed(2);
+        const sgst = (taxableAmount * 0.09).toFixed(2);
+        const total = (taxableAmount + parseFloat(cgst) + parseFloat(sgst)).toFixed(2);
+
+        const data = {
+            custName: req.body?.fname + req.body?.lname,
+            addressLine: streetAddress,
+            state: state,
+            country: country,
+            zip: pincode,
+            phone: mobile,
+            email: email,
+            invoiceCount: 1,
+            orderId: orderId,
+            invoiceDate: new Date().toISOString().split('T')[0],
+            cgst,
+            sgst,
+            total,
+            taxableAmount
+        }
+
+        await sendEmail(
+            "billingInvoiceTemplate.ejs",
+            req?.user?.email,
+            "Molimor Purchase Invoice",
+            `Hi ${fname}`,
+            {
+                data,          
+                products: cartItems 
+            });
 
         return response.success(res, req?.languageCode, resStatusCode.ACTION_COMPLETE, resMessage.ORDER_PLACED, order);
     } catch (error) {
@@ -142,7 +189,6 @@ export async function getOrderById(req, res) {
     };
     try {
         const order = await orderModel.findOne({ orderId: orderId }).populate("items.productId");
-        console.log('order', order.userId)
         if (!order) {
             return response.error(res, req?.languageCode, resStatusCode.FORBIDDEN, resMessage.NO_ORDERS_FOUND, {});
         };
